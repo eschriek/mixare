@@ -1,4 +1,4 @@
-package org.mixare;
+package org.mixare.map;
 
 import android.app.Activity;
 import android.content.Intent;
