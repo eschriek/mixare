@@ -1,13 +1,33 @@
+/*
+ * Copyright (C) 2012- Peer internet solutions & Finalist IT Group
+ * 
+ * This file is part of mixare.
+ * 
+ * This program is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License 
+ * for more details. 
+ * 
+ * You should have received a copy of the GNU General Public License along with 
+ * this program. If not, see <http://www.gnu.org/licenses/>
+ */
 package org.mixare;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.mixare.R;
+import org.mixare.gui.sectionedlist.Item;
+import org.mixare.gui.sectionedlist.SectionItem;
+import org.mixare.lib.MixUtils;
 import org.mixare.plugin.Plugin;
 import org.mixare.plugin.PluginStatus;
-import org.mixare.sectionedlist.Item;
-import org.mixare.sectionedlist.SectionItem;
+
 import com.actionbarsherlock.app.SherlockActivity;
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
@@ -15,6 +35,7 @@ import com.actionbarsherlock.view.MenuItem;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -46,6 +67,34 @@ public class PluginListActivity extends SherlockActivity {
 	}
 
 	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		for (Item item : sectionAdapter.items) {
+			if (!item.isSection()) {
+				Plugin plugin = ((EntryItem) item).getPlugin();
+				String name = plugin.getPluginType().name() + ":"
+						+ plugin.getServiceInfo().name;
+				String pluginState = savedInstanceState.getString(name);
+				if (!MixUtils.isNullOrEmpty(pluginState)) {
+					plugin.setPluginStatus(PluginStatus.valueOf(pluginState));
+					((EntryItem) item).setPlugin(plugin);
+				}
+			}
+		}
+	}
+	
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		for (Item item : sectionAdapter.items) {
+			if (!item.isSection()) {
+				Plugin plugin = ((EntryItem) item).getPlugin();
+				String name = plugin.getPluginType().name() + ":"
+						+ plugin.getServiceInfo().name;
+				outState.putString(name, plugin.getPluginStatus().name());
+			}
+		}
+	}
+	
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(MENU_SELECT_PLUGIN_ID, MENU_SELECT_PLUGIN_ID,
 				MENU_SELECT_PLUGIN_ID, R.string.select_plugin)
@@ -53,11 +102,13 @@ public class PluginListActivity extends SherlockActivity {
 				.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 		return true;
 	}
-
+	
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch (item.getItemId()) {
 		case android.R.id.home:
+			setResult(getResult());
+			savePluginState();
 			finish();
 			break;
 		/* Show available plugins from url in a webView */
@@ -94,7 +145,7 @@ public class PluginListActivity extends SherlockActivity {
 		// calculate the count of sections before the Plugins and get the real
 		// index of the Plugin
 		int sectionsBefore = 0;
-		for (int i = 0; i < MainActivity.getPlugins().size(); i++) {
+		for (int i = 0; i < sectionAdapter.getCount(); i++) {
 			Item item = sectionAdapter.getItem(i);
 			if (!item.isSection()) {
 				MainActivity.getPlugins().set(i - sectionsBefore,
@@ -109,14 +160,14 @@ public class PluginListActivity extends SherlockActivity {
 				usedPluginsPrefs, MODE_PRIVATE).edit();
 
 		for (Plugin plugin : MainActivity.getPlugins()) {
-			// is the Plugin activated
-			boolean activated = plugin.getPluginStatus().equals(
-					PluginStatus.Activated) ? true : false;
 			// create the name, example:
 			// MARKER:org.mixare.plugin.weathermarker.service.WeatherMarkerService
-			String name = plugin.getPluginType().name() + ":"
-					+ plugin.getServiceInfo().name;
-			shareEditor.putBoolean(name, activated);
+			shareEditor
+					.putBoolean(
+							plugin.getPluginType().name() + ":"
+									+ plugin.getServiceInfo().name,
+							plugin.getPluginStatus().equals(
+									PluginStatus.Activated) ? true : false);
 		}
 
 		shareEditor.commit();
@@ -216,6 +267,7 @@ public class PluginListActivity extends SherlockActivity {
 		public boolean isSection() {
 			return false;
 		}
+
 	}
 
 	private class SectionAdapter extends ArrayAdapter<Item> {
@@ -302,10 +354,11 @@ public class PluginListActivity extends SherlockActivity {
 					if (currentItem != null) {
 						holder.title.setText(currentItem.getLable());
 						holder.desc.setText(currentItem.getServiceInfo().name);
+						holder.checkBox.setTag(position);
+						holder.checkBox.setOnCheckedChangeListener(null);
 						holder.checkBox.setChecked(currentItem
 								.getPluginStatus().equals(
 										PluginStatus.Activated));
-						holder.checkBox.setTag(position);
 						holder.checkBox
 								.setOnCheckedChangeListener(checkedChangeListener);
 						holder.img.setImageDrawable(currentItem.getLogo());
@@ -337,6 +390,8 @@ public class PluginListActivity extends SherlockActivity {
 						plugin.setPluginStatus(PluginStatus.Deactivated);
 					}
 					((EntryItem) item).setPlugin(plugin);
+				} else {
+					return;
 				}
 				items.set(position, item);
 			}
