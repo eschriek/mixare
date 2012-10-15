@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mixare.R;
-import org.mixare.gui.sectionedlist.Item;
-import org.mixare.gui.sectionedlist.SectionItem;
+import org.mixare.sectionedlist.Item;
+import org.mixare.sectionedlist.SectionItem;
 import org.mixare.lib.MixUtils;
 import org.mixare.plugin.Plugin;
 import org.mixare.plugin.PluginStatus;
@@ -74,7 +74,7 @@ public class PluginListActivity extends SherlockActivity {
 				String name = plugin.getPluginType().name() + ":"
 						+ plugin.getServiceInfo().name;
 				String pluginState = savedInstanceState.getString(name);
-				if (!MixUtils.isNullOrEmpty(pluginState)) {
+				if (pluginState != null) {
 					plugin.setPluginStatus(PluginStatus.valueOf(pluginState));
 					((EntryItem) item).setPlugin(plugin);
 				}
