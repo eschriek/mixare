@@ -19,12 +19,9 @@
 
 package org.mixare.marker;
 
-import java.text.DecimalFormat;
-
 import org.mixare.lib.MixUtils;
-import org.mixare.lib.gui.PaintScreen;
+import org.mixare.lib.gui.PaintScreenGL;
 import org.mixare.lib.gui.TextObj;
-import org.mixare.marker.LocalMarker;
 
 import android.graphics.Color;
 import android.graphics.Path;
@@ -68,7 +65,7 @@ public class POIMarker extends LocalMarker {
 	}
 
 	@Override
-	public void drawCircle(PaintScreen dw) {
+	public void drawCircle(PaintScreenGL dw) {
 		if (isVisible) {
 			float maxHeight = dw.getHeight();
 			dw.setStrokeWidth(maxHeight / 100f);
@@ -96,7 +93,7 @@ public class POIMarker extends LocalMarker {
 	}
 
 	@Override
-	public void drawTextBlock(PaintScreen dw) {
+	public void drawTextBlock(PaintScreenGL dw) {
 		float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
 		// TODO: change textblock only when distance changes
 
@@ -140,7 +137,7 @@ public class POIMarker extends LocalMarker {
 		}
 	}
 
-	public void otherShape(PaintScreen dw) {
+	public void otherShape(PaintScreenGL dw) {
 		// This is to draw new shape, triangle
 		float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y,
 				signMarker.x, signMarker.y);

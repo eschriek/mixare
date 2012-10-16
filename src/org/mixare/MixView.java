@@ -30,17 +30,11 @@ import java.util.Random;
 import org.mixare.R.drawable;
 import org.mixare.data.DataSourceList;
 import org.mixare.data.DataSourceStorage;
-import org.mixare.lib.gui.PaintScreen;
-import org.mixare.lib.render.Matrix;
+import org.mixare.lib.gui.PaintScreenGL;
 import org.mixare.lib.reality.Filter;
+import org.mixare.lib.render.Matrix;
 import org.mixare.map.MixMap;
 import org.mixare.mgr.HttpTools;
-import org.mixare.plugin.PluginLoader;
-import org.mixare.plugin.PluginType;
-
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -51,6 +45,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.GeomagneticField;
 import android.hardware.Sensor;
@@ -78,7 +73,10 @@ import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 /**
  * This class is the main application which uses the other classes for different
@@ -90,11 +88,11 @@ import android.widget.Toast;
 public class MixView extends SherlockActivity implements SensorEventListener, OnTouchListener {
 
 	private CameraSurface camScreen;
-	private AugmentedView augScreen;
+	private PaintScreenGL augScreen;
 
 	private boolean isInited;
 	private static boolean isBackground;
-	private static PaintScreen dWindow;
+	private static PaintScreenGL dWindow;
 	private static DataView dataView;
 	private boolean fError;
 
@@ -160,7 +158,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				// getMixViewData().setMixContext(new MixContext(this));
 				// getMixViewData().getMixContext().setDownloadManager(new
 				// DownloadManager(mixViewData.getMixContext()));
-				setdWindow(new PaintScreen());
+				setdWindow(new PaintScreenGL(getApplicationContext()));
 				setDataView(new DataView(getMixViewData().getMixContext()));
 
 				/* set the radius in data view to the last selected by the user */
@@ -320,6 +318,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	 * {@inheritDoc}
 	 * 
 	 */
+	
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -547,7 +546,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		setDataView(null); //It's smelly code, but enforce garbage collector 
 							//to release data.
 		setDataView(new DataView(getMixViewData().getMixContext()));
-		setdWindow(new PaintScreen());
+		setdWindow(new PaintScreenGL(getApplicationContext()));
 		
 	}
 
@@ -566,8 +565,12 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	 */
 	private void maintainAugmentR() {
 		if (augScreen == null) {
-			augScreen = new AugmentedView(this);
+			augScreen = new PaintScreenGL(getApplicationContext());
 		}
+		
+		//augScreen.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+		//augScreen.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+		
 		addContentView(augScreen, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
 	}
@@ -1001,7 +1004,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 						getMixViewData().getMag());
 			}
 			
-			augScreen.postInvalidate();
+			augScreen.requestRender();
 
 			int rotation = Compatibility.getRotation(this);
 
@@ -1192,16 +1195,16 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	/**
 	 * @return the dWindow
 	 */
-	static PaintScreen getdWindow() {
+	static PaintScreenGL getdWindow() {
 		return dWindow;
 	}
 
 	/**
-	 * @param dWindow
+	 * @param paintScreenGL
 	 *            the dWindow to set
 	 */
-	static void setdWindow(PaintScreen dWindow) {
-		MixView.dWindow = dWindow;
+	static void setdWindow(PaintScreenGL paintScreenGL) {
+		MixView.dWindow = paintScreenGL;
 	}
 
 	/**
@@ -1429,10 +1432,10 @@ class AugmentedView extends View {
 
 			app.killOnError();
 
-			MixView.getdWindow().setWidth(canvas.getWidth());
-			MixView.getdWindow().setHeight(canvas.getHeight());
+			//MixView.getdWindow().setWidth(canvas.getWidth());
+			//MixView.getdWindow().setHeight(canvas.getHeight());
 
-			MixView.getdWindow().setCanvas(canvas);
+			//MixView.getdWindow().setCanvas());
 
 			if (!MixView.getDataView().isInited()) {
 				MixView.getDataView().init(MixView.getdWindow().getWidth(),

@@ -21,8 +21,7 @@ package org.mixare.marker;
 
 import org.mixare.MixView;
 import org.mixare.lib.MixUtils;
-import org.mixare.lib.gui.PaintScreen;
-import org.mixare.marker.LocalMarker;
+import org.mixare.lib.gui.PaintScreenGL;
 
 import android.graphics.Path;
 import android.location.Location;
@@ -58,12 +57,12 @@ public class NavigationMarker extends LocalMarker {
 	}
 
 	@Override
-	public void draw(PaintScreen dw) {
+	public void draw(PaintScreenGL dw) {
 		drawArrow(dw);
 		drawTextBlock(dw);
 	}
 	
-	public void drawArrow(PaintScreen dw) {
+	public void drawArrow(PaintScreenGL dw) {
 		if (isVisible) {
 			float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y, signMarker.x, signMarker.y);
 			float maxHeight = Math.round(dw.getHeight() / 10f) + 1;

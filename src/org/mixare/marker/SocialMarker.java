@@ -20,7 +20,7 @@
 package org.mixare.marker;
 
 import org.mixare.MixView;
-import org.mixare.lib.gui.PaintScreen;
+import org.mixare.lib.gui.PaintScreenGL;
 
 import android.location.Location;
 
@@ -58,7 +58,7 @@ public class SocialMarker extends LocalMarker {
 	}
 
 	@Override
-	public void draw(PaintScreen dw) {
+	public void draw(PaintScreenGL dw) {
 
 		drawTextBlock(dw);
 

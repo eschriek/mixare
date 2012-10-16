@@ -24,12 +24,11 @@ import java.text.DecimalFormat;
 
 import org.mixare.MixView;
 import org.mixare.data.convert.Elevation;
-import org.mixare.data.convert.OsmDataProcessor;
 import org.mixare.lib.MixContextInterface;
 import org.mixare.lib.MixStateInterface;
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.Label;
-import org.mixare.lib.gui.PaintScreen;
+import org.mixare.lib.gui.PaintScreenGL;
 import org.mixare.lib.gui.ScreenLine;
 import org.mixare.lib.gui.TextObj;
 import org.mixare.lib.marker.Marker;
@@ -41,7 +40,6 @@ import org.mixare.lib.render.MixVector;
 
 import android.graphics.Bitmap;
 import android.location.Location;
-import android.util.Log;
 
 /**
  * The class represents a marker and contains its information.
@@ -201,14 +199,14 @@ public abstract class LocalMarker implements Marker {
 		}
 	}
 
-	public void draw(PaintScreen dw) {
+	public void draw(PaintScreenGL dw) {
 		drawCircle(dw);
 		if (MixView.drawTextBlock) {
 			drawTextBlock(dw);
 		}
 	}
 
-	public void drawCircle(PaintScreen dw) {
+	public void drawCircle(PaintScreenGL dw) {
 
 		if (isVisible) {
 			//float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
@@ -227,7 +225,7 @@ public abstract class LocalMarker implements Marker {
 		}
 	}
 
-	public void drawTextBlock(PaintScreen dw) {
+	public void drawTextBlock(PaintScreenGL dw) {
 		//TODO: grandezza cerchi e trasparenza
 		float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
 

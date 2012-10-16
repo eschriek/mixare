@@ -35,10 +35,9 @@ import org.mixare.data.DataHandler;
 import org.mixare.data.DataSource;
 import org.mixare.gui.RadarPoints;
 import org.mixare.lib.MixUtils;
-import org.mixare.lib.gui.PaintScreen;
+import org.mixare.lib.gui.PaintScreenGL;
 import org.mixare.lib.gui.ScreenLine;
 import org.mixare.lib.marker.Marker;
-import org.mixare.lib.marker.draw.PrimitiveProperty.primitive;
 import org.mixare.lib.render.Camera;
 import org.mixare.mgr.downloader.DownloadManager;
 import org.mixare.mgr.downloader.DownloadRequest;
@@ -205,7 +204,7 @@ public class DataView {
 	// state.nextLStatus = MixState.PROCESSING;
 	// }
 
-	public void draw(PaintScreen dw) {
+	public void draw(PaintScreenGL dw) {
 		mixContext.getRM(cam.transform);
 		curFix = mixContext.getLocationFinder().getCurrentLocation();
 
@@ -349,7 +348,7 @@ public class DataView {
 	 * @param PaintScreen
 	 *            screen that radar will be drawn to
 	 */
-	private void drawRadar(PaintScreen dw) {
+	private void drawRadar(PaintScreenGL dw) {
 		String dirTxt = "";
 		int bearing = (int) state.getCurBearing();
 		int range = (int) (state.getCurBearing() / (360f / 16f));
@@ -433,7 +432,7 @@ public class DataView {
 		return evtHandled;
 	}
 
-	private void radarText(PaintScreen dw, String txt, float x, float y,
+	private void radarText(PaintScreenGL dw, String txt, float x, float y,
 			boolean bg) {
 		float padw = 4, padh = 2;
 		float w = dw.getTextWidth(txt) + padw * 2;

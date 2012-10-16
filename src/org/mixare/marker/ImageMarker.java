@@ -22,10 +22,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 
 import org.mixare.lib.MixUtils;
-import org.mixare.lib.gui.PaintScreen;
+import org.mixare.lib.gui.PaintScreenGL;
 import org.mixare.lib.gui.TextObj;
-import org.mixare.lib.render.MixVector;
 import org.mixare.lib.marker.draw.DrawImage;
+import org.mixare.lib.render.MixVector;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -115,7 +115,7 @@ public class ImageMarker extends LocalMarker {
 	 * Image Marker Draw Function.
 	 * {@inheritDoc}
 	 */
-	public void draw(final PaintScreen dw){
+	public void draw(final PaintScreenGL dw){
 		drawImage(dw);
 		drawTitle(dw);
 	}
@@ -127,7 +127,7 @@ public class ImageMarker extends LocalMarker {
 	 * 
 	 * @param PaintScreen View Screen that title screen will be drawn into
 	 */
-	public void drawTitle(final PaintScreen dw) {
+	public void drawTitle(final PaintScreenGL dw) {
 		if (isVisible) {
 			final float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
 			String textStr = MixUtils.shortenTitle(title,distance);
@@ -148,7 +148,7 @@ public class ImageMarker extends LocalMarker {
 	 * Handles Drawing Images
 	 * @param PaintScreen Screen that Image will be drawn into
 	 */
-	public void drawImage(final PaintScreen dw) {
+	public void drawImage(final PaintScreenGL dw) {
 		final DrawImage Image = new DrawImage(isVisible, cMarker, image);
 		Image.draw(dw);
 	}

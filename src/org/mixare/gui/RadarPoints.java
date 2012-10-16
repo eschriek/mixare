@@ -19,10 +19,10 @@
 package org.mixare.gui;
 
 import org.mixare.DataView;
-import org.mixare.lib.marker.Marker;
-import org.mixare.lib.gui.PaintScreen;
-import org.mixare.lib.gui.ScreenObj;
 import org.mixare.data.DataHandler;
+import org.mixare.lib.gui.PaintScreenGL;
+import org.mixare.lib.gui.ScreenObj;
+import org.mixare.lib.marker.Marker;
 
 import android.graphics.Color;
 
@@ -42,7 +42,7 @@ public class RadarPoints implements ScreenObj {
 	/** Color */
 	static int radarColor = Color.argb(100, 0, 0, 200);
 	
-	public void paint(PaintScreen dw) {
+	public void paint(PaintScreenGL dw) {
 		/** radius is in KM. */
 		range = view.getRadius() * 1000;
 		/** Draw the radar */
