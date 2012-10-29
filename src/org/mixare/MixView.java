@@ -555,7 +555,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 		setDataView(null); // It's smelly code, but enforce garbage collector
 							// to release data.
 		setDataView(new DataView(getMixViewData().getMixContext()));
-		//setdWindow(new PaintScreen());
+		setdWindow(new PaintScreen());
 
 	}
 
@@ -1211,7 +1211,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	/**
 	 * @return the dWindow
 	 */
-	static PaintScreen getdWindow() {
+	public static PaintScreen getdWindow() {
 		return dWindow;
 	}
 

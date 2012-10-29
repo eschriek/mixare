@@ -247,6 +247,7 @@ public class DataView {
 			}
 		}
 
+		long time1 = System.currentTimeMillis();
 		// Update markers
 		dataHandler.updateActivationStatus(mixContext);
 		for (int i = dataHandler.getMarkerCount() - 1; i >= 0; i--) {
@@ -269,6 +270,9 @@ public class DataView {
 		// Draw Radar
 		drawRadar(dw);
 
+		long time2 = System.currentTimeMillis() - time1;
+		System.out.println(time2);
+		
 		// Get next event
 		UIEvent evt = null;
 		synchronized (uiEvents) {
@@ -288,7 +292,7 @@ public class DataView {
 			}
 		}
 		state.nextLStatus = MixState.PROCESSING;
-
+		
 	}
 
 	/**
@@ -349,7 +353,7 @@ public class DataView {
 	 * @param PaintScreen
 	 *            screen that radar will be drawn to
 	 */
-	private void drawRadar(PaintScreen dw) {
+	public void drawRadar(PaintScreen dw) {
 		String dirTxt = "";
 		int bearing = (int) state.getCurBearing();
 		int range = (int) (state.getCurBearing() / (360f / 16f));

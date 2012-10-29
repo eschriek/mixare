@@ -30,6 +30,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
@@ -55,17 +58,17 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private long startTime;
 	private long endTime;
 	private long dt;
-
+	
 	public PaintScreen() {
 		Log.i(TAG, "Super");
 		debug = false;
 		canvasMap = Bitmap.createBitmap(1196, 670, Config.ARGB_4444);
-		//canvasMap.eraseColor(Color.TRANSPARENT);
+		// canvasMap.eraseColor(Color.TRANSPARENT);
 		cube = new Cube();
 		window = new Square(paint, 0f, 0f, 1196, 670);
 
 		canvas = new Canvas(canvasMap);
-
+		
 		paint.setTextSize(16);
 		paint.setAntiAlias(true);
 		paint.setColor(Color.BLUE);
@@ -145,38 +148,36 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	@SuppressLint("NewApi")
 	public void onDrawFrame(GL10 gl) {
-
+		long time1 = System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+		canvasMap.eraseColor(0);
 
 		// FPS LIMIT
-		endTime = System.currentTimeMillis();
-		dt = endTime - startTime;
-		if (dt < 33)
-			try {
-				Thread.sleep(33 - dt);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-
-		startTime = System.currentTimeMillis();
+		// endTime = System.currentTimeMillis();
+		// dt = endTime - startTime;
+		// if (dt < 33)
+		// try {
+		// Thread.sleep(33 - dt);
+		// } catch (InterruptedException e) {
+		// e.printStackTrace();
+		// }
+		//
+		// startTime = System.currentTimeMillis();
 
 		ready2D(gl, width, height);
+		paintText(1000, 600, "FPS : "+ (1000/dt), false);
+		MixView.getDataView().draw(MixView.getdWindow());
 
-		MixView.getDataView().draw(this);
-
-		long time1 = System.currentTimeMillis();
 		draw2D(gl);
-		long time2 = System.currentTimeMillis() - time1;
-		Log.i(TAG, "" + time2);
+
 		gl.glPushMatrix();
 
 		ready3D(gl, width, height);
 		draw3D(gl);
 
 		gl.glPopMatrix();
-
-		canvasMap = Bitmap.createBitmap(width, height, Config.ARGB_4444);
-		canvas = new Canvas(canvasMap);
+		dt = System.currentTimeMillis() - time1;
+		//Log.i(TAG, "" + time2);
 	}
 
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
@@ -196,6 +197,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		Log.i(TAG, "onSurfaceCreated");
 		// Niet meer nodig
+		dt = 1;
 		startTime = System.currentTimeMillis();
 
 		String extensions = gl.glGetString(GL10.GL_EXTENSIONS);
@@ -315,11 +317,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	public float getTextWidth(String txt) {
-		float w = paint.measureText(txt);
-
-		Log.v(TAG, "" + w);
-
-		return w;
+		//float w = paint.measureText(txt);
+		return paint.measureText(txt);
 	}
 
 	public float getTextAsc() {
