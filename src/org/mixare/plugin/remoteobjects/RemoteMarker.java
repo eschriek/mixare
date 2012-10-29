@@ -21,7 +21,7 @@ package org.mixare.plugin.remoteobjects;
 import org.mixare.lib.MixContextInterface;
 import org.mixare.lib.MixStateInterface;
 import org.mixare.lib.gui.Label;
-import org.mixare.lib.gui.PaintScreenGL;
+import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.marker.Marker;
 import org.mixare.lib.marker.draw.ClickHandler;
 import org.mixare.lib.marker.draw.DrawCommand;
@@ -80,7 +80,7 @@ public class RemoteMarker implements Marker{
 	}
 
 	@Override
-	public void draw(PaintScreenGL dw) {
+	public void draw(PaintScreen dw) {
 		try {
 			DrawCommand[] drawCommands= iMarkerService.remoteDraw(markerName);
 			for(DrawCommand drawCommand: drawCommands){

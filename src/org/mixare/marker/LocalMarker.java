@@ -28,7 +28,7 @@ import org.mixare.lib.MixContextInterface;
 import org.mixare.lib.MixStateInterface;
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.Label;
-import org.mixare.lib.gui.PaintScreenGL;
+import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.gui.ScreenLine;
 import org.mixare.lib.gui.TextObj;
 import org.mixare.lib.marker.Marker;
@@ -199,14 +199,14 @@ public abstract class LocalMarker implements Marker {
 		}
 	}
 
-	public void draw(PaintScreenGL dw) {
+	public void draw(PaintScreen dw) {
 		drawCircle(dw);
 		if (MixView.drawTextBlock) {
 			drawTextBlock(dw);
 		}
 	}
 
-	public void drawCircle(PaintScreenGL dw) {
+	public void drawCircle(PaintScreen dw) {
 
 		if (isVisible) {
 			//float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
@@ -225,7 +225,7 @@ public abstract class LocalMarker implements Marker {
 		}
 	}
 
-	public void drawTextBlock(PaintScreenGL dw) {
+	public void drawTextBlock(PaintScreen dw) {
 		//TODO: grandezza cerchi e trasparenza
 		float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
 

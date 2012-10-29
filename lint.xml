@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <lint>
     <issue id="MissingTranslation" severity="error" />
+    <issue id="NewApi">
+        <ignore path="src/org/mixare/AugmentedView.java" />
+    </issue>
 </lint>
