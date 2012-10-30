@@ -1018,10 +1018,6 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 						getMixViewData().getMag());
 			}
 
-			if (!MixView.dataView.isInited()) {
-				MixView.dataView.init(1196, 670);
-			}
-
 			int rotation = Compatibility.getRotation(this);
 
 			if (rotation == 1) {

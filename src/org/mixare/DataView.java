@@ -247,7 +247,6 @@ public class DataView {
 			}
 		}
 
-		long time1 = System.currentTimeMillis();
 		// Update markers
 		dataHandler.updateActivationStatus(mixContext);
 		for (int i = dataHandler.getMarkerCount() - 1; i >= 0; i--) {
@@ -269,9 +268,6 @@ public class DataView {
 
 		// Draw Radar
 		drawRadar(dw);
-
-		long time2 = System.currentTimeMillis() - time1;
-		System.out.println(time2);
 		
 		// Get next event
 		UIEvent evt = null;

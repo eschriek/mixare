@@ -21,7 +21,11 @@ package org.mixare.lib.gui;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import org.mixare.MixContext;
 import org.mixare.MixView;
+
+import com.example.objLoader.OBJParser;
+import com.example.objLoader.TDModel;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
@@ -49,7 +53,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private final String TAG = this.getClass().getName();
 	private Canvas canvas;
 	private Bitmap canvasMap;
-	private int width, height;
+	private int mWidth, mHeight;
 	private Paint paint = new Paint();
 	private Square window;
 	private Cube cube;
@@ -58,17 +62,22 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private long startTime;
 	private long endTime;
 	private long dt;
+	private String info;
+	private OBJParser parser;
+	private TDModel model;
 	
 	public PaintScreen() {
 		Log.i(TAG, "Super");
+		parser = new OBJParser();
+		model = parser.parseOBJ("/sdcard/untitled.obj");
 		debug = false;
-		canvasMap = Bitmap.createBitmap(1196, 670, Config.ARGB_4444);
-		// canvasMap.eraseColor(Color.TRANSPARENT);
+		info = "";
+		canvasMap = Bitmap.createBitmap(1280, 752, Config.ARGB_4444);
 		cube = new Cube();
-		window = new Square(paint, 0f, 0f, 1196, 670);
+		window = new Square(paint, 0f, 0f, 1280, 752);
 
 		canvas = new Canvas(canvasMap);
-		
+
 		paint.setTextSize(16);
 		paint.setAntiAlias(true);
 		paint.setColor(Color.BLUE);
@@ -121,7 +130,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glLoadIdentity();
 
 		// GLU.gluOrtho2D(gl, 0.0f, (float) width, 0f, (float) height);
-		gl.glOrthof(0, width, 0, height, -1f, 100f);
+		gl.glOrthof(0, width, 0, height, -1f, 1f);
 
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadIdentity();
@@ -134,16 +143,22 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	// TODO: Memory leak fixen
 	@SuppressLint("NewApi")
 	public void draw2D(GL10 gl) {
-		window.draw(gl, Util.loadGLTexture(gl, canvasMap));
+		if (window != null && canvasMap != null) {
+			paintText(mWidth-(getTextWidth(info)+70), mHeight-(mHeight-100), info + " FPS : " + (1000 / dt), false);
+			MixView.getDataView().draw(MixView.getdWindow());
+			
+			window.draw(gl, Util.loadGLTexture(gl, canvasMap));
+		}
 	}
-
+	
 	public void draw3D(GL10 gl) {
 		rotation += 1.50;
 
 		gl.glTranslatef(0.0f, 0.0f, -10.0f);
 		gl.glRotatef(rotation, 1f, 1f, 1f);
 
-		cube.draw(gl);
+		model.draw(gl);
+		//cube.draw(gl);
 	}
 
 	@SuppressLint("NewApi")
@@ -164,28 +179,29 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		//
 		// startTime = System.currentTimeMillis();
 
-		ready2D(gl, width, height);
-		paintText(1000, 600, "FPS : "+ (1000/dt), false);
-		MixView.getDataView().draw(MixView.getdWindow());
-
+		ready2D(gl, mWidth, mHeight);	
 		draw2D(gl);
 
 		gl.glPushMatrix();
 
-		ready3D(gl, width, height);
+		ready3D(gl, mWidth, mHeight);
 		draw3D(gl);
 
 		gl.glPopMatrix();
 		dt = System.currentTimeMillis() - time1;
-		//Log.i(TAG, "" + time2);
+		// Log.i(TAG, "" + time2);
 	}
 
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		Log.i(TAG, "onSurfaceChanged " + width + " " + height);
 
-		this.width = width;
-		this.height = height;
+		mWidth = width;
+		mHeight = height;
 
+		if (!MixView.getDataView().isInited()) {
+			MixView.getDataView().init(width, height);
+		}
+		
 		gl.glViewport(0, 0, width, height);
 		gl.glLoadIdentity();
 
@@ -214,9 +230,10 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				&& (!isOpenGL10 || extensions.contains("vertex_buffer_object"));
 		// canvas.drawText(version, 0, 20, 5, 5, paint);
 
-		Log.i("Graphics Support", version + " (" + renderer + "): "
+		info = ("Graphics Support " +version + " (" + renderer + "): "
 				+ (supportsDrawTexture ? "draw texture," : "")
 				+ (supportsVBOs ? "vbos" : ""));
+
 	}
 
 	public Canvas getCanvas() {
@@ -228,20 +245,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		this.canvas = canvas;
 	}
 
-	public void setWidth(int width) {
-		this.width = width;
-	}
-
-	public void setHeight(int height) {
-		this.height = height;
-	}
-
 	public int getWidth() {
-		return width;
+		return mWidth;
 	}
 
 	public int getHeight() {
-		return height;
+		return mHeight;
 	}
 
 	public void setFill(boolean fill) {
@@ -318,6 +327,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	public float getTextWidth(String txt) {
 		//float w = paint.measureText(txt);
+		//Log.i(TAG, "" + w);
 		return paint.measureText(txt);
 	}
 
@@ -342,13 +352,13 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeInt(width);
-		dest.writeInt(height);
+		dest.writeInt(mWidth);
+		dest.writeInt(mHeight);
 	}
 
 	public void readFromParcel(Parcel in) {
-		height = in.readInt();
-		width = in.readInt();
+		mHeight = in.readInt();
+		mWidth = in.readInt();
 		canvas = new Canvas();
 	}
 

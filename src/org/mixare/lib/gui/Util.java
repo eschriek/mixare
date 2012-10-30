@@ -1,6 +1,7 @@
 package org.mixare.lib.gui;
 
 import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11Ext;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -8,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.opengl.ETC1Util.ETC1Texture;
 import android.opengl.GLUtils;
 
 public class Util {
@@ -47,9 +49,7 @@ public class Util {
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T,
 				GL10.GL_CLAMP_TO_EDGE);
 
-
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-		
 		
 		//GLUtils.texSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, bitmap, GL10.GL_RGBA, GL10.GL_UNSIGNED_SHORT_4_4_4_4);
 
@@ -59,7 +59,7 @@ public class Util {
 		}
 
 		// Clean up
-		// bitmap.recycle();
+		//bitmap.recycle();
 
 		return textures;
 	}

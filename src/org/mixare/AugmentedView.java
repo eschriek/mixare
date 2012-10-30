@@ -68,9 +68,6 @@ public class AugmentedView extends GLSurfaceView {
 		try {
 			app.killOnError();
 
-			MixView.getdWindow().setWidth(width);
-			MixView.getdWindow().setHeight(height);
-
 			// MixView.getdWindow().setCanvas(this.canvas);
 
 			if (!MixView.getDataView().isInited()) {
