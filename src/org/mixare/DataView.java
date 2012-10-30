@@ -136,7 +136,7 @@ public class DataView {
 		return radius;
 	}
 
-	public void setRadius(final float radius) {
+	public void setRadius(float radius) {
 		this.radius = radius;
 	}
 

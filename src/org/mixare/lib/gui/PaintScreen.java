@@ -21,28 +21,25 @@ package org.mixare.lib.gui;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import org.mixare.MixContext;
 import org.mixare.MixView;
 
-import com.example.objLoader.OBJParser;
-import com.example.objLoader.TDModel;
-
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
+
+import com.example.objLoader.OBJParser;
+import com.example.objLoader.TDModel;
 
 /**
  * This class has the ability to set up the main view and it paints objects on
@@ -65,13 +62,26 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private String info;
 	private OBJParser parser;
 	private TDModel model;
-	
+	private double size;
+	private boolean enableBlending;
+	private MixView app;
+	private Paint zoomPaint;
+
+	public PaintScreen(Context cont) {
+		this();
+		
+		app = (MixView) cont;
+	}
+
 	public PaintScreen() {
 		Log.i(TAG, "Super");
 		parser = new OBJParser();
-		model = parser.parseOBJ("/sdcard/untitled.obj");
+		// model = parser.parseOBJ("/sdcard/untitled.obj");
 		debug = false;
+		zoomPaint = new Paint();
 		info = "";
+		size = 0;
+		enableBlending = true;
 		canvasMap = Bitmap.createBitmap(1280, 752, Config.ARGB_4444);
 		cube = new Cube();
 		window = new Square(paint, 0f, 0f, 1280, 752);
@@ -119,6 +129,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glEnable(GL10.GL_DEPTH_TEST);
 		gl.glDepthFunc(GL10.GL_LEQUAL);
 
+		if (enableBlending) {
+			gl.glEnable(GL10.GL_BLEND);
+			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
+		}
+
 		gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
 		gl.glDisable(GL10.GL_TEXTURE_2D);
 	}
@@ -137,6 +152,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glTranslatef(0.375f, 0.375f, 0.0f);
 
 		gl.glDisable(GL10.GL_DEPTH_TEST);
+		gl.glDisable(GL10.GL_BLEND);
 		gl.glEnable(GL10.GL_TEXTURE_2D);
 	}
 
@@ -144,21 +160,53 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	@SuppressLint("NewApi")
 	public void draw2D(GL10 gl) {
 		if (window != null && canvasMap != null) {
-			paintText(mWidth-(getTextWidth(info)+70), mHeight-(mHeight-100), info + " FPS : " + (1000 / dt), false);
+			size = (canvasMap.getHeight() * canvasMap.getRowBytes()) / 1024;
+			paintText(mWidth - (getTextWidth(info) + 150), mHeight
+					- (mHeight - 100), info + " FPS : " + (1000 / dt)
+					+ " size : " + size + " kb", false);
+			if (enableBlending) {
+				paintText(mWidth - (getTextWidth(info) + 150), mHeight
+						- (mHeight - 120), "Blending is ON o.O", true);
+			}
+
+			if (app.isZoombarVisible()) {
+				zoomPaint.setColor(Color.WHITE);
+				zoomPaint.setTextSize(14);
+				String startKM, endKM;
+				endKM = "80km";
+				startKM = "0km";
+				/*
+				 * if(MixListView.getDataSource().equals("Twitter")){ startKM =
+				 * "1km"; }
+				 */
+				MixView.getdWindow().paintText(canvas.getWidth() / 100 * 4,
+						canvas.getHeight() / 100 * 85, startKM, false);
+				canvas.drawText(endKM, canvas.getWidth() / 100 * 99 + 25,
+						canvas.getHeight() / 100 * 85, zoomPaint);
+
+				int height = canvas.getHeight() / 100 * 85;
+				int zoomProgress = app.getZoomProgress();
+				if (zoomProgress > 92 || zoomProgress < 6) {
+					height = canvas.getHeight() / 100 * 80;
+				}
+				canvas.drawText(app.getZoomLevel(), (canvas.getWidth()) / 100
+						* zoomProgress + 20, height, zoomPaint);
+			}
+
 			MixView.getDataView().draw(MixView.getdWindow());
-			
+
 			window.draw(gl, Util.loadGLTexture(gl, canvasMap));
 		}
 	}
-	
+
 	public void draw3D(GL10 gl) {
 		rotation += 1.50;
 
 		gl.glTranslatef(0.0f, 0.0f, -10.0f);
 		gl.glRotatef(rotation, 1f, 1f, 1f);
 
-		model.draw(gl);
-		//cube.draw(gl);
+		// model.draw(gl);
+		cube.draw(gl);
 	}
 
 	@SuppressLint("NewApi")
@@ -179,7 +227,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		//
 		// startTime = System.currentTimeMillis();
 
-		ready2D(gl, mWidth, mHeight);	
+		ready2D(gl, mWidth, mHeight);
 		draw2D(gl);
 
 		gl.glPushMatrix();
@@ -201,7 +249,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		if (!MixView.getDataView().isInited()) {
 			MixView.getDataView().init(width, height);
 		}
-		
+
 		gl.glViewport(0, 0, width, height);
 		gl.glLoadIdentity();
 
@@ -230,9 +278,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				&& (!isOpenGL10 || extensions.contains("vertex_buffer_object"));
 		// canvas.drawText(version, 0, 20, 5, 5, paint);
 
-		info = ("Graphics Support " +version + " (" + renderer + "): "
-				+ (supportsDrawTexture ? "draw texture," : "")
-				+ (supportsVBOs ? "vbos" : ""));
+		info = ("Graphics Support " + version + " (" + renderer + "): "
+				+ (supportsDrawTexture ? "draw texture, " : "") + (supportsVBOs ? "vbos"
+				: ""));
 
 	}
 
@@ -326,8 +374,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	public float getTextWidth(String txt) {
-		//float w = paint.measureText(txt);
-		//Log.i(TAG, "" + w);
+		// float w = paint.measureText(txt);
+		// Log.i(TAG, "" + w);
 		return paint.measureText(txt);
 	}
 

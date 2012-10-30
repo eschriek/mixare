@@ -90,7 +90,8 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 
 	private CameraSurface camScreen;
 	private TestSurface augScreen;
-
+	private FrameLayout zoomLayout;
+	
 	private boolean isInited;
 	private static boolean isBackground;
 	private static PaintScreen dWindow;
@@ -147,26 +148,25 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			if (getSupportActionBar() != null) {
 				getSupportActionBar().hide();
 			}
-
+			
+			setDataView(new DataView(getMixViewData().getMixContext()));
+			setdWindow(new PaintScreen(this));
+			
+			maintainCamera();
+			maintainAugmentR();
 			maintainZoomBar();
 			
 			if (!isInited) {
 				// getMixViewData().setMixContext(new MixContext(this));
 				// getMixViewData().getMixContext().setDownloadManager(new
 				// DownloadManager(mixViewData.getMixContext()));
-
-				setDataView(new DataView(getMixViewData().getMixContext()));
-				setdWindow(new PaintScreen());
+				
 				/* set the radius in data view to the last selected by the user */
 				setZoomLevel();
 				refreshDownload();
 				isInited = true;
 			}
-
-			maintainCamera();
-			maintainAugmentR();
 		
-
 			/*
 			 * Get the preference file PREFS_NAME stored in the internal memory
 			 * of the phone
@@ -552,10 +552,10 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	public void repaint() {
 		// clear stored data
 		getDataView().clearEvents();
-		setDataView(null); // It's smelly code, but enforce garbage collector
+		//setDataView(null); // It's smelly code, but enforce garbage collector
 							// to release data.
-		setDataView(new DataView(getMixViewData().getMixContext()));
-		setdWindow(new PaintScreen());
+		//setDataView(new DataView(getMixViewData().getMixContext()));
+		//setdWindow(new PaintScreen(this));
 
 	}
 
@@ -586,10 +586,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	 */
 	private void maintainZoomBar() {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		FrameLayout frameLayout = createZoomBar(settings);
-		addContentView(frameLayout, new FrameLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
-				Gravity.BOTTOM));
+		zoomLayout = createZoomBar(settings);
 	}
 
 	/**
@@ -597,20 +594,6 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	 */
 	public void refreshDownload() {
 		getMixViewData().getMixContext().getDownloadManager().switchOn();
-		// try {
-		// if (getMixViewData().getDownloadThread() != null){
-		// if (!getMixViewData().getDownloadThread().isInterrupted()){
-		// getMixViewData().getDownloadThread().interrupt();
-		// getMixViewData().getMixContext().getDownloadManager().restart();
-		// }
-		// }else { //if no download thread found
-		// getMixViewData().setDownloadThread(new Thread(getMixViewData()
-		// .getMixContext().getDownloadManager()));
-		// //@TODO Syncronize DownloadManager, call Start instead of run.
-		// mixViewData.getMixContext().getDownloadManager().run();
-		// }
-		// }catch (Exception ex){
-		// }
 	}
 
 	/**
@@ -885,6 +868,9 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			break;
 		/* zoom level */
 		case 5:
+			addContentView(zoomLayout, new FrameLayout.LayoutParams(
+					LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
+					Gravity.BOTTOM));
 			getMixViewData().getMyZoomBar().setVisibility(View.VISIBLE);
 			getMixViewData().setZoomProgress(
 					getMixViewData().getMyZoomBar().getProgress());
@@ -976,7 +962,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			repaint();
 			setZoomLevel();
 			refreshDownload();
-
+			maintainZoomBar();
 		}
 
 	};
@@ -1243,14 +1229,6 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 
 		getDataView().setRadius(myout);
 		getMixViewData().setZoomLevel(String.valueOf(myout));
-		// caller has the to control of zoombar visibility, not setzoom
-		// mixViewData.getMyZoomBar().setVisibility(View.INVISIBLE);
-		// mixViewData.setZoomLevel(String.valueOf(myout));
-		// setZoomLevel, caller has to call refreash download if needed.
-		// mixViewData.setDownloadThread(new
-		// Thread(mixViewData.getMixContext().getDownloadManager()));
-		// mixViewData.getDownloadThread().start();
-
 	}
 	
 	class TestSurface extends GLSurfaceView {
