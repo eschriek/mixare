@@ -35,6 +35,7 @@ import org.mixare.data.DataHandler;
 import org.mixare.data.DataSource;
 import org.mixare.gui.RadarPoints;
 import org.mixare.lib.MixUtils;
+import org.mixare.lib.gui.DataViewInterface;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.gui.ScreenLine;
 import org.mixare.lib.marker.Marker;
@@ -46,6 +47,7 @@ import org.mixare.mgr.downloader.DownloadResult;
 
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Handler;
 import android.util.Log;
 
 /**
@@ -55,7 +57,7 @@ import android.util.Log;
  * @author daniele
  * 
  */
-public class DataView {
+public class DataView implements DataViewInterface {
 
 	/** current context */
 	private MixContext mixContext;
@@ -428,6 +430,7 @@ public class DataView {
 				Marker pm = dataHandler.getMarker(i);
 
 				evtHandled = pm.fClick(evt.x, evt.y, mixContext, state);
+				Log.e("evt", evtHandled + "");
 			}
 		}
 		return evtHandled;

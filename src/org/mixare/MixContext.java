@@ -59,7 +59,7 @@ public class MixContext extends ContextWrapper implements MixContextInterface {
 
 	/** Responsible for Web Content */
 	private WebContentManager webContentManager;
-	
+
 	/** Responsible for Notification logging */
 	private NotificationManager notificationManager;
 
@@ -96,9 +96,23 @@ public class MixContext extends ContextWrapper implements MixContextInterface {
 	/**
 	 * Shows a webpage with the given url when clicked on a marker.
 	 */
-	public void loadMixViewWebPage(String url) throws Exception {
+	public void loadMixViewWebPage(final String url) {
 		// TODO: CHECK INTERFACE METHOD
-		getWebContentManager().loadWebPage(url, getActualMixView());
+
+		((Activity) mixView).runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+
+				try {
+					getWebContentManager().loadWebPage(url, getActualMixView());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+
 	}
 
 	public void doResume(MixView mixView) {
@@ -149,7 +163,7 @@ public class MixContext extends ContextWrapper implements MixContextInterface {
 		}
 		return notificationManager;
 	}
-	
+
 	public MixView getActualMixView() {
 		synchronized (mixView) {
 			return this.mixView;
@@ -169,13 +183,14 @@ public class MixContext extends ContextWrapper implements MixContextInterface {
 		}
 		return out;
 	}
-	
+
 	/**
 	 * Toast POPUP notification
 	 * 
-	 * @param string message
+	 * @param string
+	 *            message
 	 */
-	public void doPopUp(final String string){
+	public void doPopUp(final String string) {
 		getNotificationManager().addNotification(string);
 	}
 
@@ -185,6 +200,6 @@ public class MixContext extends ContextWrapper implements MixContextInterface {
 	 * @param connectionGpsDialogText
 	 */
 	public void doPopUp(int RidOfString) {
-        doPopUp(this.getString(RidOfString));
+		doPopUp(this.getString(RidOfString));
 	}
 }
