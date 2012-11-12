@@ -87,6 +87,7 @@ class DownloadMgrImpl implements Runnable, DownloadManager {
 	}
 
 	private DownloadResult processRequest(ManagedDownloadRequest mRequest) {
+		Log.i("b", mRequest.getOriginalRequest().toString());
 		DownloadResult result = null;
 		DownloadRequest request = null;
 		if (!stop){

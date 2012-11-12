@@ -26,6 +26,7 @@ import org.mixare.R;
 import org.mixare.data.convert.DataConvertor;
 import org.mixare.data.convert.PanoramioDataProcessor;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -174,6 +175,7 @@ public class DataSource {
 	 * 
 	 * @return true if URL and Name are correct
 	 */
+	@SuppressLint("NewApi")
 	public boolean isWellFormed() {
 		boolean out = false;
 		try {
@@ -332,7 +334,7 @@ public class DataSource {
 	/* ENUM */
 	
 	public enum TYPE {
-		WIKIPEDIA, TWITTER, OSM, MIXARE, ARENA, PANORAMIO
+		WIKIPEDIA, TWITTER, OSM, MIXARE, PANORAMIO, ARENA
 	};
 
 	public enum DISPLAY {

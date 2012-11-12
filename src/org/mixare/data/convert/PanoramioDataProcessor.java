@@ -31,8 +31,8 @@ import java.util.Random;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mixare.ImageMarker;
-import org.mixare.LocalMarker;
+import org.mixare.marker.ImageMarker;
+import org.mixare.marker.LocalMarker;
 import org.mixare.MixContext;
 import org.mixare.data.DataHandler;
 import org.mixare.data.DataSource;
@@ -198,7 +198,7 @@ public class PanoramioDataProcessor extends DataHandler implements
 			for (int j = z; j < z + looper; j++) {
 				// Fill request data to array
 				Marker ma = markers.get(j);
-				ma.setAltitude(Double.valueOf(content[k]));
+				//ma.setAltitude(Double.valueOf(content[k]));
 				markers.set(j, ma);
 				k++;
 			}

@@ -80,4 +80,11 @@ public class HtmlUnescape {
 		return source;
 	}
 
+	public static String unescapeUnicode(String url) {
+		url = url.replace("\\u003d", "=");
+		url = url.replace("\\u0026", "&");
+
+		return url;
+	}
+
 }

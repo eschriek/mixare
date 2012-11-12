@@ -134,6 +134,7 @@ public class PluginLoaderActivity extends Activity {
 			String[] url = data.getExtras().getStringArray("url");
 			// clear all datasources for a reinit
 			for (int i = 0; i < url.length; i++) {
+				System.out.println(url[i]);
 				DataSourceStorage.getInstance().clear();
 				DataSource newDs = new DataSource("Barcode source", url[i],
 						DataSource.TYPE.values()[5],

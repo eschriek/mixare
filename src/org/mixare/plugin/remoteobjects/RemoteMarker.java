@@ -35,6 +35,7 @@ import org.mixare.plugin.PluginNotFoundException;
 
 import android.location.Location;
 import android.os.RemoteException;
+import android.util.Log;
 
 /**
  * The remote marker sends request to the (remote)plugin that it is connected to through IMarkerService.
@@ -308,6 +309,8 @@ public class RemoteMarker implements Marker{
 
 	@Override
 	public void setAltitude(double altitude) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

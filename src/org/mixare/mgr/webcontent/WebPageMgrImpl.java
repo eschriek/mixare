@@ -64,7 +64,7 @@ class WebPageMgrImpl implements WebContentManager {
 		webview.getSettings().setJavaScriptEnabled(true);
 		webview.getSettings().setBuiltInZoomControls(true);
 		
-		final Dialog d = new Dialog(context, android.R.style.Theme_Translucent_NoTitleBar) {
+		final Dialog d = new Dialog(context) {
 			public boolean onKeyDown(int keyCode, KeyEvent event) {
 				if (keyCode == KeyEvent.KEYCODE_BACK)
 					this.dismiss();
@@ -96,25 +96,33 @@ class WebPageMgrImpl implements WebContentManager {
 
 		});
 
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		int height = displaymetrics.heightPixels - 60;
-		int width = displaymetrics.widthPixels - 20;
-
-		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
-	    lp.copyFrom(d.getWindow().getAttributes());
-	    lp.width = width;
-	    lp.height = height;
-	
+//		DisplayMetrics displaymetrics = new DisplayMetrics();
+//		((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+//		int height = displaymetrics.heightPixels - 60;
+//		int width = displaymetrics.widthPixels - 20;
+//
+//		WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+//	    lp.copyFrom(d.getWindow().getAttributes());
+//	    lp.width = width;
+//	    lp.height = height;
+//	
+//		d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//		int dialogHeight = d.getWindow().getAttributes().height;
+//		int dialogWidth = d.getWindow().getAttributes().width;
+//		d.getWindow().setGravity(Gravity.BOTTOM);
+//		d.addContentView(webview, new FrameLayout.LayoutParams(
+//				dialogWidth, dialogHeight,
+//				Gravity.BOTTOM));
+//		d.getWindow().setAttributes(lp);	
+		
 		d.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		int dialogHeight = d.getWindow().getAttributes().height;
-		int dialogWidth = d.getWindow().getAttributes().width;
 		d.getWindow().setGravity(Gravity.BOTTOM);
 		d.addContentView(webview, new FrameLayout.LayoutParams(
-				dialogWidth, dialogHeight,
+				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
 				Gravity.BOTTOM));
-		d.getWindow().setAttributes(lp);	
 
+		Log.i("URL", url);
+		
 		if (!processUrl(url, mixContext.getActualMixView())) { // if the url could not be processed by
 										 // another intent
 			d.show();

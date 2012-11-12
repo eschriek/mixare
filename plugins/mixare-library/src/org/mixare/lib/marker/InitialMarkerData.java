@@ -61,6 +61,8 @@ public class InitialMarkerData implements Parcelable{
 		constr[5] = link;
 		constr[6] = type;
 		constr[7] = colour;
+		
+		System.out.println(link);
 	}
 	
 	public InitialMarkerData(Parcel in) {

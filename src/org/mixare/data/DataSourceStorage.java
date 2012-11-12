@@ -202,7 +202,7 @@ public class DataSourceStorage {
 	 */
 	public void add(DataSource dataSource) {
 		dataSourceList.add(dataSource);
-		save();
+		//save();
 	}
 
 	/**
@@ -280,6 +280,7 @@ public class DataSourceStorage {
 				if (nNode.getNodeType() == Node.ELEMENT_NODE) {
 					Element eElement = (Element) nNode;
 					if (Integer.valueOf(eElement.getAttribute("id")) == id) {
+						Log.i("jaja", getTagValue("type", eElement));
 						DataSource ds = new DataSource(
 								Integer.valueOf(eElement.getAttribute("id")),
 								getTagValue("name",eElement), 

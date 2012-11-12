@@ -44,24 +44,23 @@ import android.util.Log;
 
 /**
  * loads and executes available plugins that are installed on the device.
+ * 
  * @author A.Egal
  */
 public class PluginLoader {
-	
-	private static PluginLoader instance;
-	
-	private Activity activity;
-	
 
-	
-//	private Map<String, PluginConnection> pluginMap = new HashMap<String, PluginConnection>();
-	
+	private static PluginLoader instance;
+
+	private Activity activity;
+
+	private Map<String, PluginConnection> pluginMap = new HashMap<String, PluginConnection>();
+
 	private List<PluginType> loadedPlugins = new ArrayList<PluginType>();
-	
+
 	private int pendingActivitiesOnResult = 0;
-	
+
 	public static PluginLoader getInstance() {
-		if(instance == null){
+		if (instance == null) {
 			instance = new PluginLoader();
 		}
 		return instance;
@@ -70,43 +69,45 @@ public class PluginLoader {
 	public static void newInstance() {
 		instance = new PluginLoader();
 	}
-	
+
 	public void setActivity(Activity activity) {
 		this.activity = activity;
 	}
-	
+
 	/**
 	 * loads all plugins from a plugin type if they are enabled
 	 */
 	public void loadPlugin(PluginType pluginType) {
 		List<Plugin> plugins = new ArrayList<Plugin>();
 		for (Plugin plugin : MainActivity.getPlugins()) {
-			if (plugin.getPluginType().equals(pluginType) && plugin.getPluginStatus().equals(PluginStatus.Activated)) {
+			if (plugin.getPluginType().equals(pluginType)
+					&& plugin.getPluginStatus().equals(PluginStatus.Activated)) {
 				plugins.add(plugin);
 			}
 		}
-		
+
 		initService(plugins);
 		loadedPlugins.add(pluginType);
 	}
-	
+
 	/**
-	 * Initializes the services from the loaded plugins and stores them in the pluginmap
+	 * Initializes the services from the loaded plugins and stores them in the
+	 * pluginmap
 	 */
-	private void initService(List<Plugin> list){
+	private void initService(List<Plugin> list) {
 		for (int i = 0; i < list.size(); ++i) {
 			ServiceInfo sinfo = list.get(i).getServiceInfo();
 			if (sinfo != null) {
 				Intent serviceIntent = new Intent();
 				serviceIntent.setClassName(sinfo.packageName, sinfo.name);
 				activity.startService(serviceIntent);
-				activity.bindService(serviceIntent, (ServiceConnection)list.get(i).getPluginConnection(),
-						Context.BIND_AUTO_CREATE);
+				activity.bindService(serviceIntent, (ServiceConnection) list
+						.get(i).getPluginConnection(), Context.BIND_AUTO_CREATE);
 				checkForPendingActivity(list.get(i).getPluginType());
 			}
 		}
 	}
-	
+
 	/**
 	 * Unbinds all plugins from the activity
 	 */
@@ -115,11 +116,12 @@ public class PluginLoader {
 			for (Plugin plugin : MainActivity.getPlugins()) {
 				if (plugin.getPluginConnection() instanceof ServiceConnection) {
 					try {
-						activity.unbindService((ServiceConnection) plugin.getPluginConnection());
+						activity.unbindService((ServiceConnection) plugin
+								.getPluginConnection());
 						plugin.setPluginConnection(null);
 					} catch (IllegalArgumentException iae) {
-	//					Log.e("PluginLoader", "Service: " + plugin.getLable()
-	//							+ " is not registered");
+						// Log.e("PluginLoader", "Service: " + plugin.getLable()
+						// + " is not registered");
 					}
 				}
 			}
@@ -135,26 +137,29 @@ public class PluginLoader {
 	/**
 	 * Starts an activity plugin
 	 */
-	public void startPlugin(PluginType pluginType, String pluginName){
-		if(pluginType.getLoader() == Loader.Activity){
+	public void startPlugin(PluginType pluginType, String pluginName) {
+		if (pluginType.getLoader() == Loader.Activity) {
 			ActivityConnection activityConnection = null;
 			for (Plugin plugin : MainActivity.getPlugins()) {
 				if (plugin.getServiceInfo().name.equals(pluginName)) {
-					activityConnection = (ActivityConnection) plugin.getPluginConnection();
+					activityConnection = (ActivityConnection) plugin
+							.getPluginConnection();
 					break;
 				}
 			}
 			if (activityConnection != null) {
 				activityConnection.startActivityForResult(activity);
 			}
+		} else {
+			throw new PluginNotFoundException(
+					"Cannot directly start a non-activity plugin,"
+							+ " you must call a instance for it");
 		}
-		else{
-			throw new PluginNotFoundException("Cannot directly start a non-activity plugin," +
-					" you must call a instance for it");
-		}	
 	}
-	
-	protected void addFoundPlugin(String pluginName, PluginConnection pluginConnection){
+
+	protected void addFoundPlugin(String pluginName,
+			PluginConnection pluginConnection) {
+		pluginMap.put(pluginName, pluginConnection);
 		for (Plugin plugin : MainActivity.getPlugins()) {
 			if (plugin.getServiceInfo().name.equals(pluginName)) {
 				plugin.setPluginConnection(pluginConnection);
@@ -162,21 +167,30 @@ public class PluginLoader {
 			}
 		}
 	}
-	
+
 	public Marker getMarkerInstance(String markername, int id, String title,
 			double latitude, double longitude, double altitude, String link,
 			int type, int color) throws PluginNotFoundException,
 			RemoteException {
 		
+		
 		try {
-			MarkerServiceConnection msc = null;
-			for (Plugin plugin : MainActivity.getPlugins()) {
-				if (plugin.getPluginType().equals(PluginType.MARKER)) {
-					msc = (MarkerServiceConnection) plugin.getPluginConnection();
-					break;
-				}
-			}
-			IMarkerService iMarkerService = msc.getMarkerServices().get(
+			MarkerServiceConnection msc2 = (MarkerServiceConnection) pluginMap
+					.get(PluginType.MARKER.toString());
+			
+			//DOESNT WORK
+			// try {
+			// MarkerServiceConnection msc = null;
+			// for (Plugin plugin : MainActivity.getPlugins()) {
+			// Log.i("plugins", plugin.getLable() + " " +
+			// plugin.getServiceInfo());
+			// if (plugin.getPluginType().equals(PluginType.MARKER)) {
+			// msc = (MarkerServiceConnection) plugin.getPluginConnection();
+			// break;
+			// }
+			// }
+
+			IMarkerService iMarkerService = msc2.getMarkerServices().get(
 					markername);
 
 			if (iMarkerService == null) {
@@ -191,26 +205,26 @@ public class PluginLoader {
 			return null;
 		}
 	}
-	
-	public int getPendingActivitiesOnResult(){
+
+	public int getPendingActivitiesOnResult() {
 		return pendingActivitiesOnResult;
 	}
-	
-	public void increasePendingActivitiesOnResult(){
+
+	public void increasePendingActivitiesOnResult() {
 		pendingActivitiesOnResult++;
 	}
-	
-	public void decreasePendingActivitiesOnResult(){
+
+	public void decreasePendingActivitiesOnResult() {
 		pendingActivitiesOnResult--;
 	}
-	
-	private void checkForPendingActivity(PluginType pluginType){
-		if(pluginType.getLoader() == Loader.Activity){
+
+	private void checkForPendingActivity(PluginType pluginType) {
+		if (pluginType.getLoader() == Loader.Activity) {
 			increasePendingActivitiesOnResult();
 		}
 	}
-	
-	public boolean isPluginTypeLoaded(PluginType pluginType){
+
+	public boolean isPluginTypeLoaded(PluginType pluginType) {
 		return loadedPlugins.contains(pluginType);
 	}
 }

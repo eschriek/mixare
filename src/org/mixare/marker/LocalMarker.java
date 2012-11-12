@@ -268,6 +268,7 @@ public abstract class LocalMarker implements Marker {
 
 		if (isClickValid(x, y)) {
 			if (getURL() != null)
+				System.out.println("url : " + getURL());
 				evtHandled = state.handleEvent(ctx, getURL());
 		}
 		return evtHandled;

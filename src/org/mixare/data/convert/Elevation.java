@@ -85,7 +85,7 @@ public class Elevation {
 	public String calcElevation(double lat, double lng) {
 		String requestUrl = url + "astergdem?lat=" + lat + "&lng=" + lng
 				+ "&username=" + username;
-		Looper.prepare();
+		//Looper.prepare();
 		Downloader downloader = new Downloader();
 		String content = "";
 		try {
@@ -94,7 +94,7 @@ public class Elevation {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		Looper.myLooper().quit();
+		//Looper.myLooper().quit();
 		return content;
 	}
 

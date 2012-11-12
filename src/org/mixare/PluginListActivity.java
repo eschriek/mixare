@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mixare.R;
-import org.mixare.gui.sectionedlist.Item;
-import org.mixare.gui.sectionedlist.SectionItem;
+import org.mixare.sectionedlist.Item;
+import org.mixare.sectionedlist.SectionItem;
 import org.mixare.lib.MixUtils;
 import org.mixare.plugin.Plugin;
 import org.mixare.plugin.PluginStatus;
@@ -74,14 +74,14 @@ public class PluginListActivity extends SherlockActivity {
 				String name = plugin.getPluginType().name() + ":"
 						+ plugin.getServiceInfo().name;
 				String pluginState = savedInstanceState.getString(name);
-				if (!MixUtils.isNullOrEmpty(pluginState)) {
+				if (pluginState != null || !pluginState.isEmpty()) {
 					plugin.setPluginStatus(PluginStatus.valueOf(pluginState));
 					((EntryItem) item).setPlugin(plugin);
 				}
 			}
 		}
 	}
-	
+
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		for (Item item : sectionAdapter.items) {
@@ -93,7 +93,7 @@ public class PluginListActivity extends SherlockActivity {
 			}
 		}
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		menu.add(MENU_SELECT_PLUGIN_ID, MENU_SELECT_PLUGIN_ID,
@@ -102,7 +102,7 @@ public class PluginListActivity extends SherlockActivity {
 				.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
 		return true;
 	}
-	
+
 	@Override
 	public boolean onMenuItemSelected(int featureId, MenuItem item) {
 		switch (item.getItemId()) {

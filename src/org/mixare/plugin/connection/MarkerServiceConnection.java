@@ -29,6 +29,7 @@ import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Log;
 
 /**
  * A service connector for the marker plugins, this class creates a IMarkerService instance
@@ -52,6 +53,7 @@ public class MarkerServiceConnection extends PluginConnection implements Service
 				.asInterface(service);
 		try {
 			String markername = iMarkerService.getPluginName();
+			Log.i("marker", markername);
 			markerServices.put(markername, iMarkerService);
 			storeFoundPlugin();
 		} catch (RemoteException e) {
