@@ -82,12 +82,12 @@ import android.widget.Toast;
 
 /**
  * This class is the main application which uses the other classes for different
- * functionalities.
- * It sets up the camera screen and the augmented screen which is in front of the
- * camera screen.
- * It also handles the main sensor events, touch events and location events.
+ * functionalities. It sets up the camera screen and the augmented screen which
+ * is in front of the camera screen. It also handles the main sensor events,
+ * touch events and location events.
  */
-public class MixView extends SherlockActivity implements SensorEventListener, OnTouchListener {
+public class MixView extends SherlockActivity implements SensorEventListener,
+		OnTouchListener {
 
 	private CameraSurface camScreen;
 	private AugmentedView augScreen;
@@ -103,13 +103,13 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	protected static final int GPS_ERROR = 1;
 	protected static final int GENERAL_ERROR = 2;
 	protected static final int NO_NETWORK_ERROR = 4;
-	
+
 	// test
 	public static boolean drawTextBlock = true;
-	
-	//----------
-    private MixViewDataHolder mixViewData  ;
-	
+
+	// ----------
+	private MixViewDataHolder mixViewData;
+
 	/** TAG for logging */
 	public static final String TAG = "Mixare";
 
@@ -120,13 +120,10 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	public static final String PREFS_NAME = "MyPrefsFileForMenuItems";
 
 	/**
-	 * Main application Launcher.
-	 * Does:
-	 * - Lock Screen.
-	 * - Initiate Camera View
-	 * - Initiate view {@link org.mixare.DataView#draw(PaintScreen) DataView}
-	 * - Initiate ZoomBar {@link android.widget.SeekBar SeekBar widget}
-	 * - Display License Agreement if app first used.
+	 * Main application Launcher. Does: - Lock Screen. - Initiate Camera View -
+	 * Initiate view {@link org.mixare.DataView#draw(PaintScreen) DataView} -
+	 * Initiate ZoomBar {@link android.widget.SeekBar SeekBar widget} - Display
+	 * License Agreement if app first used.
 	 * 
 	 * {@inheritDoc}
 	 */
@@ -134,18 +131,19 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// MixView.CONTEXT = this;
+		Log.i(TAG, "oncreate");
 		try {
-			isBackground = false;			
+			isBackground = false;
 			handleIntent(getIntent());
-			
+
 			final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 			getMixViewData().setmWakeLock(
 					pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
 							"My Tag"));
-			
+
 			getMixViewData().setSensorMgr(
 					(SensorManager) getSystemService(SENSOR_SERVICE));
-			
+
 			killOnError();
 			requestWindowFeature(Window.FEATURE_NO_TITLE);
 			if (getSupportActionBar() != null) {
@@ -165,7 +163,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 
 				/* set the radius in data view to the last selected by the user */
 				setZoomLevel();
-				refreshDownload();
+				// refreshDownload();
 				isInited = true;
 			}
 
@@ -247,46 +245,59 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	}
 
 	/**
-	 * Mixare Activities Pipe message communication.
-	 * Receives results from other launched activities
-	 * and base on the result returned, it either refreshes screen or not.
-	 * Default value for refreshing is false
-	 * <br/>
+	 * Mixare Activities Pipe message communication. Receives results from other
+	 * launched activities and base on the result returned, it either refreshes
+	 * screen or not. Default value for refreshing is false <br/>
 	 * {@inheritDoc}
 	 */
 	protected void onActivityResult(final int requestCode,
 			final int resultCode, Intent data) {
-		//Log.d(TAG + " WorkFlow", "MixView - onActivityResult Called");
+		// Log.d(TAG + " WorkFlow", "MixView - onActivityResult Called");
 		// check if the returned is request to refresh screen (setting might be
 		// changed)
-		
+
 		if (requestCode == 35) {
+			if (resultCode == 0) {
+				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+				if (settings.getBoolean("firstAcces", false) == false) {
+					SharedPreferences.Editor editor = settings.edit();
+					editor.putBoolean("firstArena", true);
+					Log.i(TAG, "woop");
+				}
+			}
+
 			if (resultCode == 1) {
 				final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
 				dialog.setTitle(R.string.launch_plugins);
 				dialog.setMessage(R.string.plugins_changed);
 				dialog.setCancelable(false);
-				
-				// Allways activate new plugins
-				
-//				final CheckBox checkBox = new CheckBox(ctx);
-//				checkBox.setText(R.string.remember_this_decision);
-//				dialog.setView(checkBox);		
-				
-				dialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface d, int whichButton) {
-						startActivity(new Intent(getMixViewData().getMixContext().getApplicationContext(),
-								PluginLoaderActivity.class));
-						finish();
-					}
-				});
 
-				dialog.setNegativeButton(R.string.no,new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface d, int whichButton) {
-						d.dismiss();
-					}
-				});
+				// Allways activate new plugins
+
+				// final CheckBox checkBox = new CheckBox(ctx);
+				// checkBox.setText(R.string.remember_this_decision);
+				// dialog.setView(checkBox);
+
+				dialog.setPositiveButton(R.string.yes,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface d,
+									int whichButton) {
+								startActivity(new Intent(getMixViewData()
+										.getMixContext()
+										.getApplicationContext(),
+										PluginLoaderActivity.class));
+								finish();
+							}
+						});
+
+				dialog.setNegativeButton(R.string.no,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface d,
+									int whichButton) {
+								d.dismiss();
+							}
+						});
 
 				dialog.show();
 			}
@@ -304,19 +315,16 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		}
 		super.onActivityResult(requestCode, resultCode, data);
 	}
-	
+
 	/**
-	 * Part of Android LifeCycle that gets called when "MixView" resumes.
-	 * <br/>
-	 * Does:
-	 * - Acquire Screen Lock
-	 * - Refreshes Data and Downloads
-	 * - Initiate four Matrixes that holds user's rotation view.
-	 * - Re-register Sensors. {@link android.hardware.SensorManager SensorManager}
-	 * - Re-register Location Manager. {@link org.mixare.mgr.location.LocationFinder LocationFinder}
-	 * - Switch on Download Thread. {@link org.mixare.mgr.downloader.DownloadManager DownloadManager}
-	 * - restart view refresh Timer. 
-	 * <br/>
+	 * Part of Android LifeCycle that gets called when "MixView" resumes. <br/>
+	 * Does: - Acquire Screen Lock - Refreshes Data and Downloads - Initiate
+	 * four Matrixes that holds user's rotation view. - Re-register Sensors.
+	 * {@link android.hardware.SensorManager SensorManager} - Re-register
+	 * Location Manager. {@link org.mixare.mgr.location.LocationFinder
+	 * LocationFinder} - Switch on Download Thread.
+	 * {@link org.mixare.mgr.downloader.DownloadManager DownloadManager} -
+	 * restart view refresh Timer. <br/>
 	 * {@inheritDoc}
 	 * 
 	 */
@@ -330,15 +338,17 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			getMixViewData().getMixContext().doResume(this);
 
 			HttpTools.setContext(getMixViewData().getMixContext());
-			
-			//repaint(); //repaint when requested
+
+			// repaint(); //repaint when requested
 			setZoomLevel();
 			getDataView().doStart();
 			getDataView().clearEvents();
-			getMixViewData().getMixContext().getNotificationManager().setEnabled(true);
+			getMixViewData().getMixContext().getNotificationManager()
+					.setEnabled(true);
 			refreshDownload();
-			
-			getMixViewData().getMixContext().getDataSourceManager().refreshDataSources();
+
+			getMixViewData().getMixContext().getDataSourceManager()
+					.refreshDataSources();
 
 			float angleX, angleY;
 
@@ -384,33 +394,38 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				getMixViewData().getHistR()[i] = new Matrix();
 			}
 
-			getMixViewData().addListSensors(getMixViewData().getSensorMgr().getSensorList(
-					Sensor.TYPE_ACCELEROMETER));
-			if (getMixViewData().getSensor(0).getType() == Sensor.TYPE_ACCELEROMETER ) {
+			getMixViewData().addListSensors(
+					getMixViewData().getSensorMgr().getSensorList(
+							Sensor.TYPE_ACCELEROMETER));
+			if (getMixViewData().getSensor(0).getType() == Sensor.TYPE_ACCELEROMETER) {
 				getMixViewData().setSensorGrav(getMixViewData().getSensor(0));
-			}//else report error (unsupported hardware)
+			}// else report error (unsupported hardware)
 
-			getMixViewData().addListSensors(getMixViewData().getSensorMgr().getSensorList(
-					Sensor.TYPE_MAGNETIC_FIELD));
+			getMixViewData().addListSensors(
+					getMixViewData().getSensorMgr().getSensorList(
+							Sensor.TYPE_MAGNETIC_FIELD));
 			if (getMixViewData().getSensor(1).getType() == Sensor.TYPE_MAGNETIC_FIELD) {
 				getMixViewData().setSensorMag(getMixViewData().getSensor(1));
-			}//else report error (unsupported hardware)
-			
-			if (!getMixViewData().getSensorMgr().getSensorList(Sensor.TYPE_GYROSCOPE).isEmpty()){
-				getMixViewData().addListSensors(getMixViewData().getSensorMgr().getSensorList(
-						Sensor.TYPE_GYROSCOPE));
+			}// else report error (unsupported hardware)
+
+			if (!getMixViewData().getSensorMgr()
+					.getSensorList(Sensor.TYPE_GYROSCOPE).isEmpty()) {
+				getMixViewData().addListSensors(
+						getMixViewData().getSensorMgr().getSensorList(
+								Sensor.TYPE_GYROSCOPE));
 				if (getMixViewData().getSensor(2).getType() == Sensor.TYPE_GYROSCOPE) {
-					getMixViewData().setSensorGyro(getMixViewData().getSensor(2));
+					getMixViewData().setSensorGyro(
+							getMixViewData().getSensor(2));
 				}
 				getMixViewData().getSensorMgr().registerListener(this,
 						getMixViewData().getSensorGyro(), SENSOR_DELAY_GAME);
 			}
-			
-				getMixViewData().getSensorMgr().registerListener(this,
-						getMixViewData().getSensorGrav(), SENSOR_DELAY_GAME);
-				getMixViewData().getSensorMgr().registerListener(this,
-						getMixViewData().getSensorMag(), SENSOR_DELAY_GAME);
-				
+
+			getMixViewData().getSensorMgr().registerListener(this,
+					getMixViewData().getSensorGrav(), SENSOR_DELAY_GAME);
+			getMixViewData().getSensorMgr().registerListener(this,
+					getMixViewData().getSensorMag(), SENSOR_DELAY_GAME);
+
 			try {
 				GeomagneticField gmf = getMixViewData().getMixContext()
 						.getLocationFinder().getGeomagneticField();
@@ -429,7 +444,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			} else {
 				Log.d("test", "network");
 			}
-			
+
 			getMixViewData().getMixContext().getDownloadManager().switchOn();
 			getMixViewData().getMixContext().getLocationFinder().switchOn();
 		} catch (Exception ex) {
@@ -453,10 +468,12 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				}
 			} catch (Exception ignore) {
 			}
-		}finally{
-			//This does not conflict with registered sensors (sensorMag, sensorGrav)
-			//This is a place holder to API returned listed of sensors, we registered
-			//what we need, the rest is unnecessary.
+		} finally {
+			// This does not conflict with registered sensors (sensorMag,
+			// sensorGrav)
+			// This is a place holder to API returned listed of sensors, we
+			// registered
+			// what we need, the rest is unnecessary.
 			getMixViewData().clearAllSensors();
 		}
 
@@ -491,9 +508,8 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	}
 
 	/**
-	 * Customize Activity after switching back to it.
-	 * Currently it maintain and ensures view creation.
-	 * <br/>
+	 * Customize Activity after switching back to it. Currently it maintain and
+	 * ensures view creation. <br/>
 	 * {@inheritDoc}
 	 */
 	protected void onRestart() {
@@ -502,19 +518,17 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		maintainAugmentR();
 		maintainZoomBar();
 	}
-	
+
 	/**
-	 * {@inheritDoc}
-	 * Deallocate memory and stops threads.
-	 * Please don't rely on this function as it's killable, 
-	 * and might not be called at all.
+	 * {@inheritDoc} Deallocate memory and stops threads. Please don't rely on
+	 * this function as it's killable, and might not be called at all.
 	 */
-	protected void onDestroy(){
-		try{
-			
+	protected void onDestroy() {
+		try {
+
 			getMixViewData().getMixContext().getDownloadManager().shutDown();
 			getMixViewData().getSensorMgr().unregisterListener(this);
-			isBackground = true; //used to enforce garbage MixViewDataHolder
+			isBackground = true; // used to enforce garbage MixViewDataHolder
 			getMixViewData().setSensorMgr(null);
 			mixViewData = null;
 			/*
@@ -525,30 +539,31 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			 * Do we have to create our own finalize?
 			 */
 			finalize();
-		}catch(Exception e){
-			//do nothing we are shutting down
+		} catch (Exception e) {
+			// do nothing we are shutting down
 		} catch (Throwable e) {
-			//finalize error. (this function does nothing but call native API and release 
-			//any synchronization-locked messages and threads deadlocks.
+			// finalize error. (this function does nothing but call native API
+			// and release
+			// any synchronization-locked messages and threads deadlocks.
 			Log.e(TAG, e.getMessage());
-		}finally{
+		} finally {
 			super.onDestroy();
 		}
 	}
-	
-	/* ********* Operators ***********/ 
+
+	/* ********* Operators ********** */
 	/**
-	 * View Repainting.
-	 * It deletes viewed data and initiate new one. {@link org.mixare.DataView DataView}
+	 * View Repainting. It deletes viewed data and initiate new one.
+	 * {@link org.mixare.DataView DataView}
 	 */
 	public void repaint() {
 		// clear stored data
 		getDataView().clearEvents();
-		setDataView(null); //It's smelly code, but enforce garbage collector 
-							//to release data.
+		setDataView(null); // It's smelly code, but enforce garbage collector
+							// to release data.
 		setDataView(new DataView(getMixViewData().getMixContext()));
 		setdWindow(new PaintScreen());
-		
+
 	}
 
 	/**
@@ -586,28 +601,28 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	/**
 	 * Refreshes Download TODO refresh downloads
 	 */
-	public void refreshDownload(){
+	public void refreshDownload() {
 		getMixViewData().getMixContext().getDownloadManager().switchOn();
-//		try {
-//			if (getMixViewData().getDownloadThread() != null){
-//				if (!getMixViewData().getDownloadThread().isInterrupted()){
-//					getMixViewData().getDownloadThread().interrupt();
-//					getMixViewData().getMixContext().getDownloadManager().restart();
-//				}
-//			}else { //if no download thread found
-//				getMixViewData().setDownloadThread(new Thread(getMixViewData()
-//						.getMixContext().getDownloadManager()));
-//				//@TODO Syncronize DownloadManager, call Start instead of run.
-//				mixViewData.getMixContext().getDownloadManager().run();
-//			}
-//		}catch (Exception ex){
-//		}
+		// try {
+		// if (getMixViewData().getDownloadThread() != null){
+		// if (!getMixViewData().getDownloadThread().isInterrupted()){
+		// getMixViewData().getDownloadThread().interrupt();
+		// getMixViewData().getMixContext().getDownloadManager().restart();
+		// }
+		// }else { //if no download thread found
+		// getMixViewData().setDownloadThread(new Thread(getMixViewData()
+		// .getMixContext().getDownloadManager()));
+		// //@TODO Syncronize DownloadManager, call Start instead of run.
+		// mixViewData.getMixContext().getDownloadManager().run();
+		// }
+		// }catch (Exception ex){
+		// }
 	}
-	
+
 	/**
 	 * Refreshes Viewed Data.
 	 */
-	public void refresh(){
+	public void refresh() {
 		dataView.refresh();
 	}
 
@@ -629,15 +644,17 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			break;
 		}
 
-		/*Retry*/
-		builder.setPositiveButton(R.string.connection_error_dialog_button1, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int id) {
-				// "restart" mixare
-				startActivity(new Intent(getMixViewData().getMixContext().getApplicationContext(),
-						PluginLoaderActivity.class));
-				finish();
-			}
-		});
+		/* Retry */
+		builder.setPositiveButton(R.string.connection_error_dialog_button1,
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						// "restart" mixare
+						startActivity(new Intent(getMixViewData()
+								.getMixContext().getApplicationContext(),
+								PluginLoaderActivity.class));
+						finish();
+					}
+				});
 		if (error == GPS_ERROR) {
 			/* Open settings */
 			builder.setNeutralButton(R.string.connection_error_dialog_button2,
@@ -670,26 +687,27 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 						}
 					});
 		}
-		/*Close application*/
-		builder.setNegativeButton(R.string.connection_error_dialog_button3, new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int id) {
-				finish();
-			}
-		});
-		
+		/* Close application */
+		builder.setNegativeButton(R.string.connection_error_dialog_button3,
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int id) {
+						finish();
+					}
+				});
+
 		AlertDialog alert = builder.create();
 		alert.show();
 	}
 
 	/**
-	 * Calculate Zoom Level base 80.
-	 * Mixare support zooming between 0-80 and default value of 20,
-	 * {@link android.widget.SeekBar SeekBar} on the other hand, is 0-100 base.
-	 * This method handles the Zoom level conversion between Mixare ZoomLevel and SeekBar.
+	 * Calculate Zoom Level base 80. Mixare support zooming between 0-80 and
+	 * default value of 20, {@link android.widget.SeekBar SeekBar} on the other
+	 * hand, is 0-100 base. This method handles the Zoom level conversion
+	 * between Mixare ZoomLevel and SeekBar.
 	 * 
-	 * @return int Zoom Level base 80 
+	 * @return int Zoom Level base 80
 	 */
-	public float calcZoomLevel(){
+	public float calcZoomLevel() {
 
 		int myZoomLevel = getMixViewData().getMyZoomBar().getProgress();
 		float myout = 5;
@@ -737,8 +755,11 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		editor.putInt("osmMaxObject", 5);
 		editor.commit();
 
-		// add the default datasources to the preferences file
-		DataSourceStorage.getInstance().fillDefaultDataSources();
+		if (settings.getBoolean("firstArena", true) == false) {
+			Log.i(TAG, "poow");
+			// add the default datasources to the preferences file
+			DataSourceStorage.getInstance().fillDefaultDataSources();
+		}
 	}
 
 	/**
@@ -746,7 +767,8 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	 * hidden and not added to view, Caller needs to add the frameLayout to
 	 * view, and enable visibility when needed.
 	 * 
-	 * @param SharedOreference settings where setting is stored
+	 * @param SharedOreference
+	 *            settings where setting is stored
 	 * @return FrameLayout Hidden Zoom Bar
 	 */
 	private FrameLayout createZoomBar(SharedPreferences settings) {
@@ -761,7 +783,8 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		FrameLayout frameLayout = new FrameLayout(this);
 
 		frameLayout.setMinimumWidth(3000);
-		LayoutParams pa = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+		LayoutParams pa = new LayoutParams(LayoutParams.MATCH_PARENT,
+				LayoutParams.WRAP_CONTENT);
 		frameLayout.setLayoutParams(pa);
 		frameLayout.addView(getMixViewData().getMyZoomBar());
 		frameLayout.setPadding(10, 0, 10, 10);
@@ -770,15 +793,17 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 
 	/**
 	 * Checks whether a network is available or not
+	 * 
 	 * @return True if connected, false if not
 	 */
 	private boolean isNetworkAvailable() {
-	    ConnectivityManager connectivityManager 
-	          = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-	    NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-	    return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = connectivityManager
+				.getActiveNetworkInfo();
+		return activeNetworkInfo != null
+				&& activeNetworkInfo.isConnectedOrConnecting();
 	}
-	
+
 	/* ********* Operator - Menu ***** */
 
 	@Override
@@ -803,7 +828,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				getString(R.string.menu_item_8));
 
 		MenuItem item9 = menu.add(base, base + 8, base + 8, "drawText");
-		
+
 		/* assign icons to the menu items */
 		item1.setIcon(drawable.icon_datasource);
 		item2.setIcon(drawable.icon_datasource);
@@ -816,7 +841,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 
 		return true;
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -826,19 +851,23 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				Intent intent = new Intent(MixView.this, DataSourceList.class);
 				startActivityForResult(intent, 40);
 			} else {
-				dataView.getContext().getNotificationManager()
-					.addNotification(getString(R.string.no_website_available));
+				dataView.getContext()
+						.getNotificationManager()
+						.addNotification(
+								getString(R.string.no_website_available));
 			}
 			break;
-			/* Plugin View */
+		/* Plugin View */
 		case 2:
 			if (!getDataView().getIsLauncherStarted()) {
 				Intent intent = new Intent(MixView.this,
 						PluginListActivity.class);
 				startActivityForResult(intent, 35);
 			} else {
-				dataView.getContext().getNotificationManager()
-					.addNotification(getString(R.string.no_website_available));
+				dataView.getContext()
+						.getNotificationManager()
+						.addNotification(
+								getString(R.string.no_website_available));
 			}
 			break;
 		/* List view */
@@ -848,14 +877,14 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			 * empty
 			 */
 			if (getDataView().getDataHandler().getMarkerCount() > 0) {
-				Intent intent1 = new Intent(MixView.this, MixListView.class); 
+				Intent intent1 = new Intent(MixView.this, MixListView.class);
 				intent1.setAction(Intent.ACTION_VIEW);
 				startActivityForResult(intent1, 42);
 			}
 			/* if the list is empty */
 			else {
-				dataView.getContext().getNotificationManager().
-				addNotification(getString(R.string.empty_list));
+				dataView.getContext().getNotificationManager()
+						.addNotification(getString(R.string.empty_list));
 			}
 			break;
 		/* Map View */
@@ -931,12 +960,13 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			getMixViewData().setZoomLevel(String.valueOf(myout));
 			getMixViewData().setZoomProgress(progress);
 
-			dataView.getContext().getNotificationManager().
-			addNotification("Radius: " + String.valueOf(myout));
+			dataView.getContext().getNotificationManager()
+					.addNotification("Radius: " + String.valueOf(myout));
 		}
 
 		public void onStartTrackingTouch(SeekBar seekBar) {
-			dataView.getContext().getNotificationManager().addNotification("Radius: ");
+			dataView.getContext().getNotificationManager()
+					.addNotification("Radius: ");
 		}
 
 		public void onStopTrackingTouch(SeekBar seekBar) {
@@ -951,11 +981,11 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			getMixViewData().getMyZoomBar().setProgress(seekBar.getProgress());
 
 			dataView.getContext().getNotificationManager().clear();
-			//repaint after zoom level changed.
+			// repaint after zoom level changed.
 			repaint();
 			setZoomLevel();
 			refreshDownload();
-			
+
 		}
 
 	};
@@ -963,30 +993,28 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	public void onSensorChanged(SensorEvent evt) {
 		try {
 			if (getMixViewData().getSensorGyro() != null) {
-				
+
 				if (evt.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
 					getMixViewData().setGyro(evt.values);
 				}
-				
+
 				if (evt.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 					getMixViewData().setGrav(
-							getMixViewData().getGravFilter().lowPassFilter(evt.values,
-									getMixViewData().getGrav()));
+							getMixViewData().getGravFilter().lowPassFilter(
+									evt.values, getMixViewData().getGrav()));
 				} else if (evt.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
 					getMixViewData().setMag(
-							getMixViewData().getMagFilter().lowPassFilter(evt.values,
-									getMixViewData().getMag()));
+							getMixViewData().getMagFilter().lowPassFilter(
+									evt.values, getMixViewData().getMag()));
 				}
 				getMixViewData().setAngle(
 						getMixViewData().getMagFilter().complementaryFilter(
 								getMixViewData().getGrav(),
 								getMixViewData().getGyro(), 30,
 								getMixViewData().getAngle()));
-				
-				SensorManager.getRotationMatrix(
-						getMixViewData().getRTmp(),
-						getMixViewData().getI(), 
-						getMixViewData().getGrav(),
+
+				SensorManager.getRotationMatrix(getMixViewData().getRTmp(),
+						getMixViewData().getI(), getMixViewData().getGrav(),
 						getMixViewData().getMag());
 			} else {
 				if (evt.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
@@ -994,13 +1022,11 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				} else if (evt.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
 					getMixViewData().setMag(evt.values);
 				}
-				SensorManager.getRotationMatrix(
-						getMixViewData().getRTmp(),
-						getMixViewData().getI(), 
-						getMixViewData().getGrav(),
+				SensorManager.getRotationMatrix(getMixViewData().getRTmp(),
+						getMixViewData().getI(), getMixViewData().getGrav(),
 						getMixViewData().getMag());
 			}
-			
+
 			augScreen.postInvalidate();
 
 			int rotation = Compatibility.getRotation(this);
@@ -1027,12 +1053,12 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 			getMixViewData().getFinalR().prod(getMixViewData().getM3());
 			getMixViewData().getFinalR().prod(getMixViewData().getM2());
 			getMixViewData().getFinalR().invert();
-			
+
 			getMixViewData().getHistR()[getMixViewData().getrHistIdx()]
 					.set(getMixViewData().getFinalR());
-			
+
 			int histRLenght = getMixViewData().getHistR().length;
-			
+
 			getMixViewData().setrHistIdx(getMixViewData().getrHistIdx() + 1);
 			if (getMixViewData().getrHistIdx() >= histRLenght)
 				getMixViewData().setrHistIdx(0);
@@ -1043,8 +1069,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				getMixViewData().getSmoothR().add(
 						getMixViewData().getHistR()[i]);
 			}
-			getMixViewData().getSmoothR().mult(
-					1 / (float) histRLenght);
+			getMixViewData().getSmoothR().mult(1 / (float) histRLenght);
 
 			getMixViewData().getMixContext().updateSmoothRotation(
 					getMixViewData().getSmoothR());
@@ -1058,7 +1083,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		if (getMixViewData().getMyZoomBar().getVisibility() == View.VISIBLE) {
 			getMixViewData().getMyZoomBar().setVisibility(View.INVISIBLE);
 		}
-		
+
 		try {
 			killOnError();
 
@@ -1080,7 +1105,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		try {
 			killOnError();
-			
+
 			if (getMixViewData().getMyZoomBar().getVisibility() == View.VISIBLE) {
 				getMixViewData().getMyZoomBar().setVisibility(View.INVISIBLE);
 				if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -1119,8 +1144,10 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 				&& accuracy == SensorManager.SENSOR_STATUS_UNRELIABLE
 				&& getMixViewData().getCompassErrorDisplayed() == 0) {
 			for (int i = 0; i < 2; i++) {
-				dataView.getContext().getNotificationManager().
-				addNotification("Compass data unreliable. Please recalibrate compass.");
+				dataView.getContext()
+						.getNotificationManager()
+						.addNotification(
+								"Compass data unreliable. Please recalibrate compass.");
 			}
 			getMixViewData().setCompassErrorDisplayed(
 					getMixViewData().getCompassErrorDisplayed() + 1);
@@ -1168,7 +1195,7 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
 			intent.setClass(this, MixListView.class);
 			startActivity(intent);
-			}
+		}
 	}
 
 	@Override
@@ -1176,7 +1203,6 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 		setIntent(intent);
 		handleIntent(intent);
 	}
-
 
 	/* ******* Getter and Setters ********** */
 
@@ -1228,12 +1254,13 @@ public class MixView extends SherlockActivity implements SensorEventListener, On
 
 		getDataView().setRadius(myout);
 		getMixViewData().setZoomLevel(String.valueOf(myout));
-		//caller has the to control of zoombar visibility, not setzoom
-		//mixViewData.getMyZoomBar().setVisibility(View.INVISIBLE);
-		//mixViewData.setZoomLevel(String.valueOf(myout));
-		//setZoomLevel, caller has to call refreash download if needed.
-//		mixViewData.setDownloadThread(new Thread(mixViewData.getMixContext().getDownloadManager()));
-//		mixViewData.getDownloadThread().start();
+		// caller has the to control of zoombar visibility, not setzoom
+		// mixViewData.getMyZoomBar().setVisibility(View.INVISIBLE);
+		// mixViewData.setZoomLevel(String.valueOf(myout));
+		// setZoomLevel, caller has to call refreash download if needed.
+		// mixViewData.setDownloadThread(new
+		// Thread(mixViewData.getMixContext().getDownloadManager()));
+		// mixViewData.getDownloadThread().start();
 
 	}
 
@@ -1401,7 +1428,7 @@ class AugmentedView extends View {
 
 	public AugmentedView(Context context) {
 		super(context);
-		
+
 		try {
 			app = (MixView) context;
 
@@ -1519,10 +1546,10 @@ class MixViewDataHolder {
 		this.angle = new float[3];
 		this.gravFilter = new Filter();
 		this.gravFilter.setLimit(0.5f, 1.0f);
-		
+
 		this.magFilter = new Filter();
 		this.magFilter.setLimit(2.0f, 5.0f);
-		
+
 		this.rHistIdx = 0;
 		this.tempR = new Matrix();
 		this.finalR = new Matrix();
@@ -1600,7 +1627,7 @@ class MixViewDataHolder {
 	public Filter getGravFilter() {
 		return gravFilter;
 	}
-	
+
 	public Filter getMagFilter() {
 		return magFilter;
 	}
@@ -1613,32 +1640,33 @@ class MixViewDataHolder {
 		this.sensorMgr = sensorMgr;
 	}
 
-	public void addSensor (Sensor snr){
+	public void addSensor(Sensor snr) {
 		sensorList.add(snr);
 	}
-	
-	public void addListSensors (Collection<Sensor> listSnr){
+
+	public void addListSensors(Collection<Sensor> listSnr) {
 		this.sensorList.addAll((Collection<? extends Sensor>) listSnr);
 	}
-	
-	public Sensor getSensor(int location){
+
+	public Sensor getSensor(int location) {
 		return this.sensorList.get(location);
 	}
-	
-	public void removeSensor (Sensor snr){
+
+	public void removeSensor(Sensor snr) {
 		this.sensorList.remove(snr);
 	}
-	
+
 	/**
-	 * Removes all "Stored" sensors.
-	 * Please UNREGISTER them first before clearing.
+	 * Removes all "Stored" sensors. Please UNREGISTER them first before
+	 * clearing.
 	 */
-	public void clearAllSensors (){
+	public void clearAllSensors() {
 		this.sensorList.clear();
 	}
-	
+
 	/**
-	 * @deprecated please use {@link org.mixare.MixViewDataHolder#getSensor(int) getSensor}
+	 * @deprecated please use
+	 *             {@link org.mixare.MixViewDataHolder#getSensor(int) getSensor}
 	 * @return List Sensors
 	 */
 	public List<Sensor> getSensors() {
@@ -1646,7 +1674,9 @@ class MixViewDataHolder {
 	}
 
 	/**
-	 * @deprecated please use {@link org.mixare.MixViewDataHolder#addListSensors(List) addListSensors}
+	 * @deprecated please use
+	 *             {@link org.mixare.MixViewDataHolder#addListSensors(List)
+	 *             addListSensors}
 	 * @param sensors
 	 */
 	public void setSensors(List<Sensor> sensors) {
