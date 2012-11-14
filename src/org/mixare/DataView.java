@@ -252,22 +252,30 @@ public class DataView implements DataViewInterface {
 
 		// Update markers
 		dataHandler.updateActivationStatus(mixContext);
-		for (int i = dataHandler.getMarkerCount() - 1; i >= 0; i--) {
-			final Marker ma = dataHandler.getMarker(i);
-			// if (ma.isActive() && (ma.getDistance() / 1000f < radius || ma
-			// instanceof NavigationMarker || ma instanceof SocialMarker)) {
-			if (ma.isActive() && (ma.getDistance() / 1000f < radius)) {
-
-				// To increase performance don't recalculate position vector
-				// for every marker on every draw call, instead do this only
-				// after onLocationChanged and after downloading new marker
-				// if (!frozen)
-				// ma.update(curFix);
+		for(Marker m : dataHandler.getMarkerList()) {
+			if(m.isActive() && (m.getDistance() / 1000f < radius)) {
 				if (!frozen)
-					ma.calcPaint(cam, addX, addY);
-				ma.draw(dw);
+					m.calcPaint(cam, addX, addY);
+				m.draw(dw);
 			}
 		}
+		
+//		for (int i = dataHandler.getMarkerCount() - 1; i >= 0; i--) {
+//			final Marker ma = dataHandler.getMarker(i);
+//			// if (ma.isActive() && (ma.getDistance() / 1000f < radius || ma
+//			// instanceof NavigationMarker || ma instanceof SocialMarker)) {
+//			if (ma.isActive() && (ma.getDistance() / 1000f < radius)) {
+//
+//				// To increase performance don't recalculate position vector
+//				// for every marker on every draw call, instead do this only
+//				// after onLocationChanged and after downloading new marker
+//				// if (!frozen)
+//				// ma.update(curFix);
+//				if (!frozen)
+//					ma.calcPaint(cam, addX, addY);
+//				ma.draw(dw);
+//			}
+//		}
 
 		// Draw Radar
 		drawRadar(dw);

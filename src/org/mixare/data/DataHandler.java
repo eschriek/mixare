@@ -21,8 +21,10 @@ package org.mixare.data;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import org.mixare.MixContext;
 import org.mixare.MixView;
@@ -39,7 +41,7 @@ import android.util.Log;
 public class DataHandler {
 	
 	// complete marker list
-	private List<Marker> markerList = new ArrayList<Marker>();
+	private Set<Marker> markerList = new HashSet<Marker>();
 	
 	public void addMarkers(List<Marker> markers) {
 
@@ -53,7 +55,7 @@ public class DataHandler {
 	}
 	
 	public void sortMarkerList() {
-		Collections.sort(markerList); 
+	//	Collections.sort(markerList); 
 	}
 	
 	public void updateDistances(Location location) {
@@ -89,13 +91,13 @@ public class DataHandler {
 		}
 	}
 	
-//	/**
-//	 * @deprecated Nobody should get direct access to the list
-//	 */
-//	public List<Marker> getMarkerList() {
-//		return markerList;
-//	}
-//	
+	/**
+	 * @deprecated Nobody should get direct access to the list
+	 */
+	public Set<Marker> getMarkerList() {
+		return markerList;
+	}
+	
 //	/**
 //	 * @deprecated Nobody should get direct access to the list
 //	 */
@@ -108,6 +110,11 @@ public class DataHandler {
 	}
 	
 	public Marker getMarker(int index) {
-		return markerList.get(index);
+		int i = 0;
+		for(Marker m: markerList) {
+			if(i == index) return m;
+			i++;
+		}
+		return null;
 	}
 }
