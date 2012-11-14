@@ -202,7 +202,7 @@ public class DataSourceStorage {
 	 */
 	public void add(DataSource dataSource) {
 		dataSourceList.add(dataSource);
-		//save();
+		save();
 	}
 
 	/**
