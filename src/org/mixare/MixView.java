@@ -332,6 +332,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	protected void onResume() {
 		super.onResume();
 		isBackground = false;
+		Log.i(TAG, "onResume");
 		try {
 			this.getMixViewData().getmWakeLock().acquire();
 			killOnError();

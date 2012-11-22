@@ -2,6 +2,7 @@
 <lint>
     <issue id="MissingTranslation" severity="error" />
     <issue id="NewApi">
+        <ignore path="src/org/mixare/PluginLoaderActivity.java" />
         <ignore path="src/org/mixare/data/DataSourceStorage.java" />
     </issue>
 </lint>

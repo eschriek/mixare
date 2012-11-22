@@ -41,6 +41,7 @@ public class PluginLoaderActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		Bundle extras = getIntent().getExtras();
+		
 		if (extras != null){
 			try {
 				if (extras.containsKey("AppName")) {
@@ -95,6 +96,7 @@ public class PluginLoaderActivity extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
+
 		if(data != null && data.getExtras() != null && data.getExtras().getString(CLOSE_ACTIVITY_CALL) != null){
 			//back button was pressed, close mixare now.
 			finish();
@@ -105,7 +107,7 @@ public class PluginLoaderActivity extends Activity {
 			finish();
 			return;
 		}
-
+		
 		processDataSourceFromPlugin(data);
 		procesCustomSplashScreen(data);
 

@@ -64,6 +64,7 @@ public class PluginListActivity extends SherlockActivity {
 		sectionAdapter = new SectionAdapter(this, 0, list);
 		listView = (ListView) findViewById(R.id.section_list_view);
 		listView.setAdapter(sectionAdapter);
+
 	}
 
 	@Override

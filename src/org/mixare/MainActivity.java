@@ -17,6 +17,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
+import android.util.Log;
 
 /**
  * This is the main activity of mixare, that will be opened if mixare is
@@ -39,22 +40,50 @@ public class MainActivity extends Activity {
 			finish();
 		}
 	}
-
+	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		plugins = new ArrayList<Plugin>();
 		ctx = this;
-		// TODO: change message if Plugins only have been deinstalled
-		if (areNewPluginsAvailable() || arePluginsDeinstalled()) {
-			SharedPreferences.Editor prefEditor = getSharedPreferences(
-					usedPluginsPrefs, MODE_PRIVATE).edit();
-			prefEditor.clear();
-			prefEditor.commit();
-			showDialog();
+
+		Bundle extras = getIntent().getExtras();
+
+		if (extras != null) {
+			try {
+				// If this class was called by Arena plugin bundle, load all
+				// plugins (easier for the user)
+				if (extras.containsKey("arenaLoad")) {
+					Log.i("Mixare", "Gestard door Arena");
+
+					getInstalledPlugins();
+
+					for (Plugin t : getPlugins()) {
+						t.setPluginStatus(PluginStatus.Activated);
+						Log.i("Mixare",
+								"" + t.getPluginType() + "  "
+										+ t.getPluginStatus());
+					}
+
+					startActivity(new Intent(ctx, PluginLoaderActivity.class));
+					finish();
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		} else {
-			startActivity(new Intent(ctx, PluginLoaderActivity.class));
-			finish();
+
+			// TODO: change message if Plugins only have been deinstalled
+			if (areNewPluginsAvailable() || arePluginsDeinstalled()) {
+				SharedPreferences.Editor prefEditor = getSharedPreferences(
+						usedPluginsPrefs, MODE_PRIVATE).edit();
+				prefEditor.clear();
+				prefEditor.commit();
+				showDialog();
+			} else {
+				startActivity(new Intent(ctx, PluginLoaderActivity.class));
+				finish();
+			}
 		}
 	}
 

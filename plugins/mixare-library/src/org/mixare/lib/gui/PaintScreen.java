@@ -150,7 +150,9 @@ public class PaintScreen implements Parcelable{
 	}
 
 	public float getTextWidth(String txt) {
-		return paint.measureText(txt);
+		float w = paint.measureText(txt);
+		
+		return w;
 	}
 
 	public float getTextAsc() {

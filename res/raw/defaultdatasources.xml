@@ -40,7 +40,7 @@
     <datasource id="4" >
         <name>Panoramio</name>
         <url>http://www.panoramio.com/map/get_panoramas.php</url>
-        <type>5</type>
+        <type>4</type>
         <display>2</display>
         <visible>true</visible>
         <editable>false</editable>
