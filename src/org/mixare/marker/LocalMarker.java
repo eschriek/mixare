@@ -192,7 +192,7 @@ public abstract class LocalMarker implements Marker {
 		float objY = txtLab.getY() - txtLab.getHeight() / 2;
 		float objW = txtLab.getWidth();
 		float objH = txtLab.getHeight();
-		
+
 		if (pPt.x > objX && pPt.x < objX + objW && pPt.y > objY
 				&& pPt.y < objY + objH) {
 			return true;
@@ -267,8 +267,8 @@ public abstract class LocalMarker implements Marker {
 		boolean evtHandled = false;
 
 		if (isClickValid(x, y)) {
+			Log.i("Mixare", "Click is valid" + x + " " + y);
 			if (getURL() != null)
-				System.out.println("url : " + getURL());
 				evtHandled = state.handleEvent(ctx, getURL());
 		}
 		return evtHandled;

@@ -27,6 +27,7 @@ import org.mixare.lib.render.MixVector;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * A click validator class to handle the clicks on the core side, 
@@ -88,7 +89,7 @@ public class ClickHandler implements Parcelable{
 		pPt.rotate((float) Math.toRadians(-(currentAngle + 90)));
 		pPt.x += txtLab.getX();
 		pPt.y += txtLab.getY();
-
+		
 		float objX = txtLab.getX() - txtLab.getWidth() / 2;
 		float objY = txtLab.getY() - txtLab.getHeight() / 2;
 		float objW = txtLab.getWidth();

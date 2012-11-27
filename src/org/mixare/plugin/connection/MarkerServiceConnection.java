@@ -43,6 +43,7 @@ public class MarkerServiceConnection extends PluginConnection implements Service
 
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
+		Log.i("Mixare", "Disco");
 		markerServices.clear();
 	}
 

@@ -40,7 +40,7 @@ public class MainActivity extends Activity {
 			finish();
 		}
 	}
-	
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
 					}
 
 					startActivity(new Intent(ctx, PluginLoaderActivity.class));
-					finish();
+
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

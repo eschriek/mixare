@@ -26,6 +26,7 @@ import org.mixare.plugin.remoteobjects.RemoteDataHandler;
 import android.content.ComponentName;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.util.Log;
 
 public class DataHandlerServiceConnection extends PluginConnection implements
 		ServiceConnection {
@@ -43,6 +44,7 @@ public class DataHandlerServiceConnection extends PluginConnection implements
 
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
+		Log.i("Mixare", "Disco");
 		DataConvertor.getInstance().clearDataProcessors();
 	}
 

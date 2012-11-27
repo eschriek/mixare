@@ -352,7 +352,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 					.refreshDataSources();
 
 			float angleX, angleY;
-
+			
 			int marker_orientation = -90;
 
 			int rotation = Compatibility.getRotation(this);

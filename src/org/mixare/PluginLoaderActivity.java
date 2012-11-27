@@ -38,6 +38,7 @@ public class PluginLoaderActivity extends Activity {
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		Log.i("MixarePluginLoader", "onCreate");
 		super.onCreate(savedInstanceState);
 
 		Bundle extras = getIntent().getExtras();
@@ -136,7 +137,6 @@ public class PluginLoaderActivity extends Activity {
 			String[] url = data.getExtras().getStringArray("url");
 			// clear all datasources for a reinit
 			for (int i = 0; i < url.length; i++) {
-				System.out.println(url[i]);
 				DataSourceStorage.getInstance().clear();
 				DataSource newDs = new DataSource("Barcode source", url[i],
 						DataSource.TYPE.values()[5],
@@ -148,6 +148,7 @@ public class PluginLoaderActivity extends Activity {
 
 	@Override
 	protected void onDestroy() {
+		Log.i("MixarePluginLoader", "onDestroy");
 		PluginLoader.getInstance().unBindServices();
 		super.onDestroy();
 	}
@@ -161,6 +162,7 @@ public class PluginLoaderActivity extends Activity {
 	}
 
 	private void loadPlugins() {
+		Log.i("MixarePluginLoader", "loadPlugins");
 		PluginLoader.getInstance().setActivity(this);
 		PluginLoader.getInstance().loadPlugin(PluginType.MARKER);
 		PluginLoader.getInstance().loadPlugin(PluginType.BOOTSTRAP_PHASE_2);

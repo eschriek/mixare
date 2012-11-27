@@ -289,7 +289,8 @@ public class RemoteMarker implements Marker{
 	public boolean equals(Object o) {
 		if(o instanceof RemoteMarker){
 			RemoteMarker rm = (RemoteMarker)o;
-			if(rm.markerName.equals(this.markerName)){
+			//Log.i("Mixare", rm.getID() + " " + this.getID() + " " + (rm.markerName.equals(this.markerName)));
+			if(rm.getID().equals(this.getID())){
 				return true;
 			}
 		}

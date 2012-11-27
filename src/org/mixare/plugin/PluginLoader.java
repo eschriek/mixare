@@ -101,8 +101,12 @@ public class PluginLoader {
 				Intent serviceIntent = new Intent();
 				serviceIntent.setClassName(sinfo.packageName, sinfo.name);
 				activity.startService(serviceIntent);
-				activity.bindService(serviceIntent, (ServiceConnection) list
-						.get(i).getPluginConnection(), Context.BIND_AUTO_CREATE);
+				boolean connected = activity.bindService(serviceIntent,
+						(ServiceConnection) list.get(i).getPluginConnection(),
+						Context.BIND_AUTO_CREATE);
+				if (!connected) {
+					throw new PluginNotFoundException("BindService failed");
+				}
 				checkForPendingActivity(list.get(i).getPluginType());
 			}
 		}
@@ -112,6 +116,7 @@ public class PluginLoader {
 	 * Unbinds all plugins from the activity
 	 */
 	public void unBindServices() {
+		Log.i("MixarePluginLoader", "unbindServices()");
 		try {
 			for (Plugin plugin : MainActivity.getPlugins()) {
 				if (plugin.getPluginConnection() instanceof ServiceConnection) {
@@ -120,8 +125,8 @@ public class PluginLoader {
 								.getPluginConnection());
 						plugin.setPluginConnection(null);
 					} catch (IllegalArgumentException iae) {
-						// Log.e("PluginLoader", "Service: " + plugin.getLable()
-						// + " is not registered");
+						Log.e("PluginLoader", "Service: " + plugin.getLable()
+								+ " is not registered");
 					}
 				}
 			}
@@ -172,13 +177,12 @@ public class PluginLoader {
 			double latitude, double longitude, double altitude, String link,
 			int type, int color) throws PluginNotFoundException,
 			RemoteException {
-		
-		
+
 		try {
 			MarkerServiceConnection msc2 = (MarkerServiceConnection) pluginMap
 					.get(PluginType.MARKER.toString());
-			
-			//DOESNT WORK
+
+			// DOESNT WORK
 			// try {
 			// MarkerServiceConnection msc = null;
 			// for (Plugin plugin : MainActivity.getPlugins()) {
