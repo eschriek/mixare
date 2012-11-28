@@ -118,7 +118,8 @@ public class PluginLoaderActivity extends Activity {
 			loadPlugins();
 		}
 		if (arePendingActivitiesFinished()) {
-			startActivityForResult(new Intent(this, MixView.class),0);
+			startActivity(new Intent(this, MixView.class));
+			//startActivityForResult(new Intent(this, MixView.class),0);
 			finish();
 		}
 	}

@@ -6,6 +6,13 @@ import java.nio.FloatBuffer;
 
 import javax.microedition.khronos.opengles.GL10;
 
+/**
+ * Simple 3D cube
+ * @author Edwin Schriek
+ * Nov 14, 2012
+ * mixare-library
+ *
+ */
 public class Cube {
     
     private FloatBuffer mVertexBuffer;

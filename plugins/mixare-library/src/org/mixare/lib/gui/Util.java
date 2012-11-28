@@ -8,21 +8,25 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.opengl.GLException;
 import android.opengl.GLUtils;
 
 /**
- * 
- * @author edwin schriek
+ * Utils
+ * @author Edwin Schriek
+ * Nov 14, 2012
+ * mixare-library
  *
  */
 public class Util {
 
 	private static int[] textures = new int[1];
 
-	public static Bitmap drawableToBitmap(Drawable d) {
-		return ((BitmapDrawable) d).getBitmap();
-	}
-
+	/**
+	 * Convert the color from a Paint object to float
+	 * @param paint Paint object that must be converted
+	 * @return Returns a float array which contains the converted color, which can be used by glColorf
+	 */
 	public static float[] paintColorByteToFloat(Paint paint) {
 
 		int red = Color.red(paint.getColor());
@@ -34,9 +38,15 @@ public class Util {
 				alpha / 255f };
 	}
 
-	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap) {
-
-		// Bitmap clone = bitmap.copy(bitmap.getConfig(), true);
+	/**
+	 * Generates a texture from a bitmap
+	 * TODO: Optimise
+	 * @param gl The gl object supplied by onDraw
+	 * @param bitmap The bitmap that should be converted
+	 * @return The resulting texture
+	 * @throws a GLException if something went wrong
+	 */
+	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap) throws GLException {
 
 		gl.glDeleteTextures(1, textures, 0);
 		gl.glGenTextures(1, textures, 0);
@@ -60,7 +70,7 @@ public class Util {
 
 		int error = gl.glGetError();
 		if (error != GL10.GL_NO_ERROR) {
-			System.out.println("GL ERROR : " + error);
+			throw new GLException(error, "Foutje in texImage2D");
 		}
 
 		// Clean up

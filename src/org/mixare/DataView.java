@@ -210,9 +210,9 @@ public class DataView implements DataViewInterface {
 	public void draw(PaintScreen dw) {
 		mixContext.getRM(cam.transform);
 		curFix = mixContext.getLocationFinder().getCurrentLocation();
-
+		
 		state.calcPitchBearing(cam.transform);
-
+		
 		// Load Layer
 		if (state.nextLStatus == MixState.NOT_STARTED && !frozen) {
 			loadDrawLayer();
@@ -260,6 +260,7 @@ public class DataView implements DataViewInterface {
 			}
 		}
 		
+		//SLOW
 //		for (int i = dataHandler.getMarkerCount() - 1; i >= 0; i--) {
 //			final Marker ma = dataHandler.getMarker(i);
 //			// if (ma.isActive() && (ma.getDistance() / 1000f < radius || ma

@@ -1,8 +1,11 @@
 package org.mixare;
 
+import javax.microedition.khronos.opengles.GL;
+
 import org.mixare.MixView;
 import org.mixare.lib.gui.DataViewInterface;
 import org.mixare.lib.gui.GLParameters;
+import org.mixare.lib.gui.MatrixTrackingGL;
 import org.mixare.lib.gui.PaintScreen;
 
 import android.annotation.SuppressLint;
@@ -23,6 +26,14 @@ public class Surface3D extends GLSurfaceView {
 	public Surface3D(Context context, DataViewInterface data) {
 		super(context);
 
+		this.setGLWrapper(new GLWrapper() {
+			
+			@Override
+			public GL wrap(GL gl) {
+				return new MatrixTrackingGL(gl);
+			}
+		});
+	
 		Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay(); 
 		Point p = new Point();
 		display.getSize(p);

@@ -22,12 +22,14 @@ import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.mixare.lib.gui.Model3D;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.render.MixVector;
 
 import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * This drawcommand class, can be implemented by subclasses that can draw items on the screen
@@ -66,6 +68,10 @@ public abstract class DrawCommand implements Parcelable{
 	
 	MixVector getMixVectorProperty(String key){
 		return (MixVector)getParcelableProperty(key);
+	}
+	
+	Model3D getModel3DProperty(String key) {
+		return (Model3D) getParcelableProperty(key);
 	}
 	
 	Bitmap getBitmapProperty(String key){
@@ -155,6 +161,7 @@ public abstract class DrawCommand implements Parcelable{
 			return (DrawCommand) m.invoke(null, in);			
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+			
 		}
 	}	
 	

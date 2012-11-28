@@ -170,7 +170,7 @@ public class PluginLoader {
 
 	public Marker getMarkerInstance(String markername, int id, String title,
 			double latitude, double longitude, double altitude, String link,
-			int type, int color) throws PluginNotFoundException,
+			int type, int color, String markerType) throws PluginNotFoundException,
 			RemoteException {
 		
 		
@@ -190,6 +190,7 @@ public class PluginLoader {
 			// }
 			// }
 
+			Log.i("TAG", markername);
 			IMarkerService iMarkerService = msc2.getMarkerServices().get(
 					markername);
 
@@ -198,7 +199,7 @@ public class PluginLoader {
 			}
 			RemoteMarker rm = new RemoteMarker(iMarkerService);
 			rm.buildMarker(id, title, latitude, longitude, altitude, link,
-					type, color);
+					type, color, markerType);
 			return rm;
 		} catch (NullPointerException ne) {
 			System.exit(0);

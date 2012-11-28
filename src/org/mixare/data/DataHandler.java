@@ -39,25 +39,25 @@ import android.util.Log;
  * DataHandler is also the Factory for new Marker objects.
  */
 public class DataHandler {
-	
+
 	// complete marker list
 	private Set<Marker> markerList = new HashSet<Marker>();
-	
+
 	public void addMarkers(List<Marker> markers) {
 
-//		Log.v(MixView.TAG, "Marker before: "+markerList.size());
-		for(Marker ma:markers) {
-			if(!markerList.contains(ma))
+		// Log.v(MixView.TAG, "Marker before: "+markerList.size());
+		for (Marker ma : markers) {
+			if (!markerList.contains(ma))
 				markerList.add(ma);
 		}
-		
-//		Log.d(MixView.TAG, "Marker count: "+markerList.size());
+
+		// Log.d(MixView.TAG, "Marker count: "+markerList.size());
 	}
-	
+
 	public void sortMarkerList() {
-	//	Collections.sort(markerList); 
+		// Collections.sort(markerList);
 	}
-	
+
 	public void updateDistances(Location location) {
 		for (Marker ma : markerList) {
 			float[] dist = new float[3];
@@ -66,53 +66,57 @@ public class DataHandler {
 			ma.setDistance(dist[0]);
 		}
 	}
-	
-	public void updateActivationStatus(MixContext mixContext) {
-		
-		Hashtable<Class, Integer> map = new Hashtable<Class, Integer>();
-				
-		for(Marker ma: markerList) {
 
-			Class<? extends Marker> mClass=ma.getClass();
-			map.put(mClass, (map.get(mClass)!=null)?map.get(mClass)+1:1);
-			
+	public void updateActivationStatus(MixContext mixContext) {
+
+		Hashtable<Class, Integer> map = new Hashtable<Class, Integer>();
+
+		for (Marker ma : markerList) {
+
+			Class<? extends Marker> mClass = ma.getClass();
+			map.put(mClass, (map.get(mClass) != null) ? map.get(mClass) + 1 : 1);
+
 			boolean belowMax = (map.get(mClass) <= ma.getMaxObjects());
-			//boolean dataSourceSelected = mixContext.isDataSourceSelected(ma.getDatasource());
-			
+			// boolean dataSourceSelected =
+			// mixContext.isDataSourceSelected(ma.getDatasource());
+
 			ma.setActive((belowMax));
 		}
 	}
-		
+
 	public void onLocationChanged(Location location) {
 		updateDistances(location);
 		sortMarkerList();
-		for(Marker ma: markerList) {
+		for (Marker ma : markerList) {
 			ma.update(location);
 		}
 	}
-	
-	/**
-	 * @deprecated Nobody should get direct access to the list
-	 */
+
 	public Set<Marker> getMarkerList() {
 		return markerList;
 	}
-	
-//	/**
-//	 * @deprecated Nobody should get direct access to the list
-//	 */
-//	public void setMarkerList(List<Marker> markerList) {
-//		this.markerList = markerList;
-//	}
+
+	// /**
+	// * @deprecated Nobody should get direct access to the list
+	// */
+	// public void setMarkerList(List<Marker> markerList) {
+	// this.markerList = markerList;
+	// }
 
 	public int getMarkerCount() {
 		return markerList.size();
 	}
-	
+
+	/**
+	 * @deprecated Avoid using this because its slow to loop over a HashSet. Use
+	 *             {@link DataHandler#getMarkerList()} to loop over objects
+	 *             instead;
+	 */
 	public Marker getMarker(int index) {
 		int i = 0;
-		for(Marker m: markerList) {
-			if(i == index) return m;
+		for (Marker m : markerList) {
+			if (i == index)
+				return m;
 			i++;
 		}
 		return null;

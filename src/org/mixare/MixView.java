@@ -261,6 +261,14 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 		// changed)
 
 		if (requestCode == 35) {
+			if (resultCode == 0) {
+				SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+				if (settings.getBoolean("firstAcces", false) == false) {
+					SharedPreferences.Editor editor = settings.edit();
+					editor.putBoolean("firstArena", true);
+					Log.i(TAG, "woop");
+				}
+			}
 			if (resultCode == 1) {
 				final AlertDialog.Builder dialog = new AlertDialog.Builder(this);
 
@@ -308,7 +316,6 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 		} catch (Exception ex) {
 			// do nothing do to mix of return results.
 		}
-		super.onActivityResult(requestCode, resultCode, data);
 	}
 
 	/**
@@ -750,8 +757,11 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 		editor.putInt("osmMaxObject", 5);
 		editor.commit();
 
-		// add the default datasources to the preferences file
-		DataSourceStorage.getInstance().fillDefaultDataSources();
+		if (settings.getBoolean("firstArena", true) == false) {
+			Log.i(TAG, "poow");
+			// add the default datasources to the preferences file
+			DataSourceStorage.getInstance().fillDefaultDataSources();
+		}
 	}
 
 	/**

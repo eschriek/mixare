@@ -47,7 +47,6 @@ import android.widget.TextView;
  */
 public class DataSource {
 	private static int DataSourceId = 0;
-
 	private int id;
 	private String name;
 	private String url;

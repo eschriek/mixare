@@ -20,6 +20,7 @@ package org.mixare.lib.marker.draw;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * A draw property which contains a parcelable object with its classname so it

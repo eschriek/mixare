@@ -1,2 +1,2 @@
 package org.mixare.lib.gui;
-parcelable TextObj;
+parcelable Model3D;

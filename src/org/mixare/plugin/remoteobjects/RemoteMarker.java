@@ -38,16 +38,18 @@ import android.os.RemoteException;
 import android.util.Log;
 
 /**
- * The remote marker sends request to the (remote)plugin that it is connected to through IMarkerService.
- * the remote marker is treated like a normal marker in the core. And it overrides the marker interface.
+ * The remote marker sends request to the (remote)plugin that it is connected to
+ * through IMarkerService. the remote marker is treated like a normal marker in
+ * the core. And it overrides the marker interface.
+ * 
  * @author A. Egal
  */
-public class RemoteMarker implements Marker{
+public class RemoteMarker implements Marker {
 
 	private String markerName;
 	private IMarkerService iMarkerService;
-	
-	public RemoteMarker(IMarkerService iMarkerService){
+
+	public RemoteMarker(IMarkerService iMarkerService) {
 		this.iMarkerService = iMarkerService;
 	}
 
@@ -55,15 +57,17 @@ public class RemoteMarker implements Marker{
 		return 0;
 	}
 
-	public void buildMarker(int id, String title, double latitude, double longitude, double altitude, String url, int type, int color){
+	public void buildMarker(int id, String title, double latitude,
+			double longitude, double altitude, String url, int type, int color, String markerType) {
 		try {
-			this.markerName = iMarkerService.buildMarker(id, title, latitude, longitude, altitude, url, type, color);
+			this.markerName = iMarkerService.buildMarker(id, title, latitude,
+					longitude, altitude, url, type, color, markerType);
 		} catch (RemoteException e) {
 			throw new PluginNotFoundException(e);
 		}
 	}
 
-	public String getPluginName(){
+	public String getPluginName() {
 		try {
 			return iMarkerService.getPluginName();
 		} catch (RemoteException e) {
@@ -72,7 +76,7 @@ public class RemoteMarker implements Marker{
 	}
 
 	@Override
-	public void calcPaint(Camera viewCam, float addX, float addY){	
+	public void calcPaint(Camera viewCam, float addX, float addY) {
 		try {
 			iMarkerService.calcPaint(markerName, viewCam, addX, addY);
 		} catch (RemoteException e) {
@@ -83,16 +87,17 @@ public class RemoteMarker implements Marker{
 	@Override
 	public void draw(PaintScreen dw) {
 		try {
-			DrawCommand[] drawCommands= iMarkerService.remoteDraw(markerName);
-			for(DrawCommand drawCommand: drawCommands){
+			DrawCommand[] drawCommands = iMarkerService.remoteDraw(markerName);
+			for (DrawCommand drawCommand : drawCommands) {
 				drawCommand.draw(dw);
-				if(drawCommand.getProperty("textlab") != null){
-					setTxtLab((Label)((ParcelableProperty)drawCommand.getProperty("textlab")).getObject());
+				if (drawCommand.getProperty("textlab") != null) {
+					setTxtLab((Label) ((ParcelableProperty) drawCommand
+							.getProperty("textlab")).getObject());
 				}
 			}
 		} catch (RemoteException e) {
 			throw new PluginNotFoundException(e);
-		} catch (NullPointerException ne){
+		} catch (NullPointerException ne) {
 			throw new PluginNotFoundException(ne);
 		}
 	}
@@ -186,13 +191,13 @@ public class RemoteMarker implements Marker{
 			throw new PluginNotFoundException(e);
 		}
 	}
-	
-	public void setTxtLab(Label txtLab){
-		try{
-			if(txtLab != null){
+
+	public void setTxtLab(Label txtLab) {
+		try {
+			if (txtLab != null) {
 				iMarkerService.setTxtLab(markerName, txtLab);
 			}
-		} catch (RemoteException e){
+		} catch (RemoteException e) {
 			throw new PluginNotFoundException(e);
 		}
 	}
@@ -250,16 +255,16 @@ public class RemoteMarker implements Marker{
 			throw new PluginNotFoundException(e);
 		}
 	}
-	
-	public void setExtras(String name, ParcelableProperty parcelableProperty){
+
+	public void setExtras(String name, ParcelableProperty parcelableProperty) {
 		try {
 			iMarkerService.setExtrasParc(markerName, name, parcelableProperty);
 		} catch (RemoteException e) {
 			throw new PluginNotFoundException(e);
 		}
 	}
-	
-	public void setExtras(String name, PrimitiveProperty primitiveProperty){
+
+	public void setExtras(String name, PrimitiveProperty primitiveProperty) {
 		try {
 			iMarkerService.setExtrasPrim(markerName, name, primitiveProperty);
 		} catch (RemoteException e) {
@@ -268,15 +273,18 @@ public class RemoteMarker implements Marker{
 	}
 
 	@Override
-	public boolean fClick(float x, float y, MixContextInterface ctx, MixStateInterface state) {
+	public boolean fClick(float x, float y, MixContextInterface ctx,
+			MixStateInterface state) {
 		ClickHandler clickHandler;
 		try {
-			//sending optional information.
-			iMarkerService.setExtrasPrim(markerName, "x", new PrimitiveProperty(primitive.FLOAT.name(), (Float)x));
-			iMarkerService.setExtrasPrim(markerName, "y", new PrimitiveProperty(primitive.FLOAT.name(), (Float)y));
+			// sending optional information.
+			iMarkerService.setExtrasPrim(markerName, "x",
+					new PrimitiveProperty(primitive.FLOAT.name(), (Float) x));
+			iMarkerService.setExtrasPrim(markerName, "y",
+					new PrimitiveProperty(primitive.FLOAT.name(), (Float) y));
 
 			clickHandler = iMarkerService.fClick(markerName);
-			if(clickHandler != null){
+			if (clickHandler != null) {
 				return clickHandler.handleClick(x, y, ctx, state);
 			}
 			return false;
@@ -287,9 +295,9 @@ public class RemoteMarker implements Marker{
 	
 	@Override
 	public boolean equals(Object o) {
-		if(o instanceof RemoteMarker){
-			RemoteMarker rm = (RemoteMarker)o;
-			if(rm.markerName.equals(this.markerName)){
+		if (o instanceof RemoteMarker) {
+			RemoteMarker rm = (RemoteMarker) o;
+			if (rm.markerName.equals(this.markerName)) {
 				return true;
 			}
 		}
@@ -303,14 +311,15 @@ public class RemoteMarker implements Marker{
 
 	@Override
 	public int compareTo(Marker another) {
-		Marker rm = (Marker)another;
-		return new Double(this.getDistance()).compareTo(new Double(rm.getDistance()));
+		Marker rm = (Marker) another;
+		return new Double(this.getDistance()).compareTo(new Double(rm
+				.getDistance()));
 	}
 
 	@Override
 	public void setAltitude(double altitude) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

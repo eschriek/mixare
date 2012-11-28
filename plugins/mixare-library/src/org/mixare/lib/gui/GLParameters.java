@@ -1,5 +1,12 @@
 package org.mixare.lib.gui;
 
+/**
+ * Global preferences, includes flags for device specific optimisation
+ * @author Edwin Schriek
+ * Nov 14, 2012
+ * mixare-library
+ *
+ */
 public class GLParameters {
 
 	public static boolean BLENDING = false;

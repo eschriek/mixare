@@ -128,10 +128,16 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		if (GLParameters.DEBUG)
 			Log.i(TAG, "Ready3D " + width + " " + height);
 
+		float size = .01f * (float) Math.tan(Math.toRadians(45.0) / 2);
+		float ratio = width / height;
+
 		gl.glViewport(0, 0, width, height);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
 
 		gl.glLoadIdentity();
+		// gl.glFrustumf(-size, size, -size / ratio, size / ratio, 0.01f,
+		// 100.0f);
+		// gl.glOrthof(0, width, 0, height, 0.1f, 100f);
 
 		GLU.gluPerspective(gl, 67f, (float) width / height, 0.1f, 100f);
 
@@ -215,43 +221,38 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		}
 	}
 
-	public float distanceToDepth(float distance) {
-	    return ((1/0.1f) - (1/distance))/((1/0.1f) - (1/100f));
-	}
-	
-	public float[] unproject(float rx, float ry, float rz) {// TODO Factor in
-															// projection matrix
-		float[] modelInv = new float[16];
-		if (!android.opengl.Matrix.invertM(modelInv, 0, grabber.mModelView, 0))
-			throw new IllegalArgumentException("ModelView is not invertible.");
-		float[] projInv = new float[16];
-		if (!android.opengl.Matrix.invertM(projInv, 0, grabber.mProjection, 0))
-			throw new IllegalArgumentException("Projection is not invertible.");
-		float[] combo = new float[16];
-		android.opengl.Matrix.multiplyMM(combo, 0, modelInv, 0, projInv, 0);
-		float[] result = new float[4];
-		float vx = 0;
-		float vy = 0;
-		float vw = GLParameters.WIDTH;
-		float vh = GLParameters.HEIGHT;
-		float[] rhsVec = { ((2 * (rx - vx)) / vw) - 1,
-				((2 * (ry - vy)) / vh) - 1, 2 * rz - 1, 1 };
-		android.opengl.Matrix.multiplyMV(result, 0, combo, 0, rhsVec, 0);
-		float d = 1 / result[3];
-		float[] endResult = { result[0] * d, result[1] * d, result[2] * d };
-		return endResult;
+	public float[] unproject(GL10 gl, float x, float y) {
+		grabber.getCurrentState(gl);
+		int[] view = { 0, 0, GLParameters.WIDTH, GLParameters.HEIGHT };
+		float[] pos = new float[4];
+		float[] result = null;
+		int retval = GLU.gluUnProject(x, y, 1, grabber.mModelView, 0,
+				grabber.mProjection, 0, view, 0, pos, 0);
+		if (retval != GL10.GL_TRUE) {
+			Log.e("unproject", GLU.gluErrorString(retval));
+		} else {
+			result = new float[3];
+			result[0] = pos[0] / pos[3];
+			result[1] = pos[1] / pos[3];
+			result[2] = pos[2] / pos[3];
+			result = pos;
+		}
+		return result;
 	}
 
 	public void draw3D(GL10 gl) {
 		rotation += 1.50;
 
+		gl.glTranslatef(0f, 0f, -10.0f);
+		//gl.glRotatef(rotation, 1f, 1f, 1f);
+
 		synchronized (cubes) {
 			for (Model3D model : cubes) {
 				Cube tmp = new Cube();
-				grabber.getCurrentState(gl);
-				float[] points = unproject(model.getRot_x(), (GLParameters.HEIGHT - model.getRot_y()), distanceToDepth(14)); 
-				gl.glTranslatef(points[0], points[1], points[2]);
-				gl.glRotatef(rotation, 1f, 1f, 1f);
+				float[] points = unproject(gl, model.getRot_x(), (GLParameters.HEIGHT - model.getRot_y())); 
+				System.out.println(points[0] + " " + points[1] + points[2]);
+				gl.glTranslatef(points[0]+1.0f, points[1], points[2]);
+				//gl.glScalef(25, 25, 0);
 				tmp.draw(gl);
 
 			}
