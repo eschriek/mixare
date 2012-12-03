@@ -70,8 +70,8 @@ public class DrawObj extends DrawCommand {
 				return;
 			}
 			
-			object.setRot_x(signMarker.x);
-			object.setRot_y(signMarker.y - (35));
+			object.setxPos(signMarker.x);
+			object.setyPos(signMarker.y - (35));
 			dw.paint3DModel(object);
 			// dw.paintBitmap(bitmap, signMarker.x - (bitmap.getWidth()/2),
 			// signMarker.y - (bitmap.getHeight() / 2));

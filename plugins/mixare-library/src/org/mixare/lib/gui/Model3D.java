@@ -1,5 +1,8 @@
 package org.mixare.lib.gui;
 
+import org.mixare.lib.model3d.OBJParser;
+import org.mixare.lib.model3d.TDModel;
+
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -7,6 +10,8 @@ public class Model3D implements Parcelable {
 
 	private String obj;
 	private float rot_x, rot_y, rot_z;
+	private float xPos, yPos;
+	private TDModel model;
 	private int blended;
 
 	public static final Parcelable.Creator<Model3D> CREATOR = new Parcelable.Creator<Model3D>() {
@@ -19,14 +24,46 @@ public class Model3D implements Parcelable {
 		}
 	};
 
-	public Model3D() {
-		
+	@Override
+	public int hashCode() {
+		return obj.hashCode() + (int) (31 * xPos) + (int) (31 * yPos)
+				+ Model3D.class.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this.hashCode() == o.hashCode()) {
+			return true;
+		}
+		return super.equals(o);
+	}
+
+	//Update everything but the model 
+	public void update(Model3D object) {
+		this.xPos = object.getxPos();
+		this.yPos = object.getyPos();
+		this.rot_x = object.getRot_x();
+		this.rot_y = object.getRot_y();
+		this.rot_z = object.getRot_z();
+		this.blended = object.isBlended();
 	}
 	
-	public Model3D(Parcel in){
+	public TDModel getModel() {
+		return model;
+	}
+
+	public void setModel(TDModel model) {
+		this.model = model;
+	}
+
+	public Model3D() {
+
+	}
+
+	public Model3D(Parcel in) {
 		readParcel(in);
 	}
-	
+
 	public String getObj() {
 		return obj;
 	}
@@ -45,6 +82,22 @@ public class Model3D implements Parcelable {
 
 	public float getRot_y() {
 		return rot_y;
+	}
+
+	public float getxPos() {
+		return xPos;
+	}
+
+	public void setxPos(float xPos) {
+		this.xPos = xPos;
+	}
+
+	public float getyPos() {
+		return yPos;
+	}
+
+	public void setyPos(float yPos) {
+		this.yPos = yPos;
 	}
 
 	public void setRot_y(float rot_y) {
@@ -81,12 +134,12 @@ public class Model3D implements Parcelable {
 		dest.writeInt(blended);
 	}
 
-	public void readParcel(Parcel in){
+	public void readParcel(Parcel in) {
 		obj = in.readString();
 		rot_x = in.readFloat();
 		rot_y = in.readFloat();
 		rot_z = in.readFloat();
 		blended = in.readInt();
 	}
-	
+
 }

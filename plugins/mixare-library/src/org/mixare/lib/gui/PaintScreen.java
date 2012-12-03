@@ -18,13 +18,20 @@
  */
 package org.mixare.lib.gui;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import org.mixare.lib.MixContextInterface;
 import org.mixare.lib.gui.ScreenObj;
+import org.mixare.lib.model3d.OBJParser;
+import org.mixare.lib.model3d.TDModel;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -39,6 +46,7 @@ import android.graphics.RectF;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
+import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -58,7 +66,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private int mWidth, mHeight;
 	private Paint paint = new Paint();
 	private Square window;
-	private Cube cube;
 	private float rotation;
 	private boolean debug;
 	private long dt;
@@ -68,7 +75,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private MixViewInterface app;
 	private DataViewInterface data;
 	private Paint zoomPaint;
-	private HashSet<Model3D> cubes = new HashSet<Model3D>();
+	private HashMap<String, Model3D> models = new HashMap<String, Model3D>();
 	private MatrixGrabber grabber;
 
 	public PaintScreen(Context cont, DataViewInterface dat) {
@@ -97,7 +104,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				GLParameters.HEIGHT);
 
 		canvas = new Canvas(canvasMap);
-		cube = new Cube();
 		grabber = new MatrixGrabber();
 
 		paint.setTextSize(16);
@@ -215,10 +221,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		}
 	}
 
+	// Berekend diepte in een perspective matrix, 0.1 staat voor zNear en 100
+	// staat in dit geval voor zFar;
+	// TODO: zNear en zFar hun variabelen toekennen en in heel de class
+	// gebruiken
 	public float distanceToDepth(float distance) {
-	    return ((1/0.1f) - (1/distance))/((1/0.1f) - (1/100f));
+		return ((1 / 0.1f) - (1 / distance)) / ((1 / 0.1f) - (1 / 100f));
 	}
-	
+
 	public float[] unproject(float rx, float ry, float rz) {// TODO Factor in
 															// projection matrix
 		float[] modelInv = new float[16];
@@ -245,25 +255,68 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	public void draw3D(GL10 gl) {
 		rotation += 1.50;
 
-		synchronized (cubes) {
-			for (Model3D model : cubes) {
-				Cube tmp = new Cube();
+		synchronized (models) {
+			for (Model3D model : models.values()) {
 				grabber.getCurrentState(gl);
-				float[] points = unproject(model.getRot_x(), (GLParameters.HEIGHT - model.getRot_y()), distanceToDepth(14)); 
+				float[] points = unproject(model.getxPos(),
+						(GLParameters.HEIGHT - model.getyPos()),
+						distanceToDepth(14));
 				gl.glTranslatef(points[0], points[1], points[2]);
 				gl.glRotatef(rotation, 1f, 1f, 1f);
-				tmp.draw(gl);
+				// tmp.draw(gl);
+				model.getModel().draw(gl);
 
 			}
 		}
 		// cube.draw(gl);
 	}
 
+	public void paint3DModel(Model3D model) {
+		Iterator<Entry<String, Model3D>> it = models.entrySet().iterator();
+		boolean create = false;
+
+		if (models.isEmpty()) {
+			create = true;
+		}
+
+		//To keep GC happy, load model once in memory. 
+		while (it.hasNext()) {
+			Entry<String, Model3D> entry = it.next();
+
+			if (model.getObj().equalsIgnoreCase(entry.getKey())) {
+				create = false;
+				// This should never be true, but who knows
+				if (model.equals(entry.getValue())) {
+					break;
+				} else {
+					entry.getValue().update(model);
+					break;
+				}
+
+			} else {
+				create = true;
+			}
+		}
+
+		if (create) {
+			Log.i(TAG, "Create!");
+			//Why not one parser instance, because it segfaults.Why? No idea!
+			OBJParser parser = new OBJParser((Context) app);
+			try {
+				model.setModel(parser.parseOBJ(model.getObj()));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			models.put(model.getObj(), model);
+		}
+
+	}
+
 	@SuppressLint("NewApi")
 	public void onDrawFrame(GL10 gl) {
 		long time1 = System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-		cubes.clear();
 		canvasMap.eraseColor(0);
 
 		ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
@@ -322,6 +375,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		return canvas;
 	}
 
+	
+	/**
+	 * !! Using this will mess up 3D drawing.
+	 * @param canvas
+	 */
 	@Deprecated
 	public void setCanvas(Canvas canvas) {
 		this.canvas = canvas;
@@ -393,14 +451,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		paint.setUnderlineText(underline);
 		canvas.drawText(text, x, y, paint);
-	}
-
-	public void paint3DModel(Model3D model) {
-		// Log.i("Mixare", model.getObj());
-		cubes.add(model);
-		if (cubes.contains(model)) {
-			cubes.add(model);
-		}
 	}
 
 	public void paintObj(ScreenObj obj, float x, float y, float rotation,
