@@ -148,11 +148,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glEnable(GL10.GL_DEPTH_TEST);
 		gl.glDepthFunc(GL10.GL_LEQUAL);
 
-		if (GLParameters.BLENDING) {
-			gl.glEnable(GL10.GL_BLEND);
-			gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
-		}
-
 		gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_NICEST);
 		gl.glDisable(GL10.GL_TEXTURE_2D);
 	}
@@ -253,8 +248,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	public void draw3D(GL10 gl) {
-		rotation += 1.50;
-
 		synchronized (models) {
 			for (Model3D model : models.values()) {
 				grabber.getCurrentState(gl);
@@ -262,13 +255,24 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 						(GLParameters.HEIGHT - model.getyPos()),
 						distanceToDepth(14));
 				gl.glTranslatef(points[0], points[1], points[2]);
-				gl.glRotatef(rotation, 1f, 1f, 1f);
-				// tmp.draw(gl);
+				// Scale
+				gl.glScalef(model.getSchaal(), model.getSchaal(),
+						model.getSchaal());
+				// Rotate
+				gl.glRotatef(model.getRot_x(), 1f, 0f, 0f);
+				gl.glRotatef(model.getRot_y(), 0f, 1f, 0f);
+				gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
+				// Blenderen
+				if (model.isBlended() == 0) {
+					gl.glEnable(GL10.GL_BLEND);
+					gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
+				}
+
+				//Tekenen
 				model.getModel().draw(gl);
 
 			}
 		}
-		// cube.draw(gl);
 	}
 
 	public void paint3DModel(Model3D model) {
@@ -279,7 +283,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			create = true;
 		}
 
-		//To keep GC happy, load model once in memory. 
+		// To keep GC happy, load model once in memory.
 		while (it.hasNext()) {
 			Entry<String, Model3D> entry = it.next();
 
@@ -300,7 +304,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		if (create) {
 			Log.i(TAG, "Create!");
-			//Why not one parser instance, because it segfaults.Why? No idea!
+			// Why not one parser instance, because it segfaults.Why? No idea!
 			OBJParser parser = new OBJParser((Context) app);
 			try {
 				model.setModel(parser.parseOBJ(model.getObj()));
@@ -375,9 +379,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		return canvas;
 	}
 
-	
 	/**
 	 * !! Using this will mess up 3D drawing.
+	 * 
 	 * @param canvas
 	 */
 	@Deprecated

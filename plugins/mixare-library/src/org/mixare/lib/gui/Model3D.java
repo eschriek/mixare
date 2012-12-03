@@ -12,6 +12,7 @@ public class Model3D implements Parcelable {
 	private float rot_x, rot_y, rot_z;
 	private float xPos, yPos;
 	private TDModel model;
+	private float schaal;
 	private int blended;
 
 	public static final Parcelable.Creator<Model3D> CREATOR = new Parcelable.Creator<Model3D>() {
@@ -118,6 +119,14 @@ public class Model3D implements Parcelable {
 
 	public void setBlended(int blended) {
 		this.blended = blended;
+	}
+
+	public float getSchaal() {
+		return schaal;
+	}
+
+	public void setSchaal(float schaal) {
+		this.schaal = schaal;
 	}
 
 	@Override
