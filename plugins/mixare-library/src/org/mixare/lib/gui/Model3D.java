@@ -1,6 +1,5 @@
 package org.mixare.lib.gui;
 
-import org.mixare.lib.model3d.OBJParser;
 import org.mixare.lib.model3d.TDModel;
 
 import android.os.Parcel;
@@ -11,9 +10,11 @@ public class Model3D implements Parcelable {
 	private String obj;
 	private float rot_x, rot_y, rot_z;
 	private float xPos, yPos;
-	private TDModel model;
 	private float schaal;
 	private int blended;
+	private double distance;
+	private double bearing;
+	private TDModel model;
 
 	public static final Parcelable.Creator<Model3D> CREATOR = new Parcelable.Creator<Model3D>() {
 		public Model3D createFromParcel(Parcel in) {
@@ -27,7 +28,8 @@ public class Model3D implements Parcelable {
 
 	@Override
 	public int hashCode() {
-		return obj.hashCode() + (int) (31 * xPos) + (int) (31 * yPos)
+		return obj.hashCode() + ((Float) xPos).hashCode()
+				+ ((Float) yPos).hashCode() + ((Double) distance).hashCode()
 				+ Model3D.class.hashCode();
 	}
 
@@ -39,8 +41,10 @@ public class Model3D implements Parcelable {
 		return super.equals(o);
 	}
 
-	//Update everything but the model 
+	// Update everything but the model
 	public void update(Model3D object) {
+		this.bearing = object.getBearing();
+		this.distance = object.getDistance();
 		this.xPos = object.getxPos();
 		this.yPos = object.getyPos();
 		this.rot_x = object.getRot_x();
@@ -48,7 +52,7 @@ public class Model3D implements Parcelable {
 		this.rot_z = object.getRot_z();
 		this.blended = object.isBlended();
 	}
-	
+
 	public TDModel getModel() {
 		return model;
 	}
@@ -129,6 +133,22 @@ public class Model3D implements Parcelable {
 		this.schaal = schaal;
 	}
 
+	public double getDistance() {
+		return distance;
+	}
+
+	public void setDistance(double distance) {
+		this.distance = distance;
+	}
+
+	public double getBearing() {
+		return bearing;
+	}
+
+	public void setBearing(double bearing) {
+		this.bearing = bearing;
+	}
+
 	@Override
 	public int describeContents() {
 		return 0;
@@ -140,7 +160,12 @@ public class Model3D implements Parcelable {
 		dest.writeFloat(rot_x);
 		dest.writeFloat(rot_y);
 		dest.writeFloat(rot_z);
+		dest.writeFloat(xPos);
+		dest.writeFloat(yPos);
+		dest.writeFloat(schaal);
 		dest.writeInt(blended);
+		dest.writeDouble(distance);
+		dest.writeDouble(bearing);
 	}
 
 	public void readParcel(Parcel in) {
@@ -148,7 +173,12 @@ public class Model3D implements Parcelable {
 		rot_x = in.readFloat();
 		rot_y = in.readFloat();
 		rot_z = in.readFloat();
+		xPos = in.readFloat();
+		yPos = in.readFloat();
+		schaal = in.readFloat();
 		blended = in.readInt();
+		distance = in.readDouble();
+		bearing = in.readDouble();
 	}
 
 }

@@ -66,8 +66,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private int mWidth, mHeight;
 	private Paint paint = new Paint();
 	private Square window;
-	private float rotation;
-	private boolean debug;
 	private long dt;
 	private String info;
 	private double size;
@@ -75,7 +73,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private MixViewInterface app;
 	private DataViewInterface data;
 	private Paint zoomPaint;
-	private HashMap<String, Model3D> models = new HashMap<String, Model3D>();
+	private HashMap<String, Model3D> models;
 	private MatrixGrabber grabber;
 
 	public PaintScreen(Context cont, DataViewInterface dat) {
@@ -105,6 +103,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		canvas = new Canvas(canvasMap);
 		grabber = new MatrixGrabber();
+		models = new HashMap<String, Model3D>();
 
 		paint.setTextSize(16);
 		paint.setAntiAlias(true);
@@ -217,9 +216,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	// Berekend diepte in een perspective matrix, 0.1 staat voor zNear en 100
-	// staat in dit geval voor zFar;
-	// TODO: zNear en zFar hun variabelen toekennen en in heel de class
-	// gebruiken
+	// staat in dit geval voor zFar; Oftewel gezichtsveld is 99.9 meter
+	// TODO: zFar aanpassen aan de radius van de marker
 	public float distanceToDepth(float distance) {
 		return ((1 / 0.1f) - (1 / distance)) / ((1 / 0.1f) - (1 / 100f));
 	}
@@ -251,24 +249,44 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		synchronized (models) {
 			for (Model3D model : models.values()) {
 				grabber.getCurrentState(gl);
+				// Magische lijntjes, berekend van scherm coordinaten de
+				// bijbehorende projection coordinaten en vertaald ook de
+				// afstand naar het object naar een waarde ten opzichte van
+				// zNear en zFar
 				float[] points = unproject(model.getxPos(),
 						(GLParameters.HEIGHT - model.getyPos()),
-						distanceToDepth(14));
+						distanceToDepth((float) model.getDistance()));
+
 				gl.glTranslatef(points[0], points[1], points[2]);
+
+				// System.out.println(model.getDistance() + " " + points[2]
+				// + model.getSchaal() + " " + model.getRot_x() + " "
+				// + model.getRot_y() + " " + model.isBlended() + " "
+				// + model.getBearing());
+
 				// Scale
+				// Schaalen met meer dan 5 zorgt voor enorme objecten. 2.5 keer
+				// het originele formaat ziet er wel redelijk uit.
+				if (model.getSchaal() > 5) {
+					model.setSchaal(2.5f);
+				}
+
 				gl.glScalef(model.getSchaal(), model.getSchaal(),
 						model.getSchaal());
-				// Rotate
-				gl.glRotatef(model.getRot_x(), 1f, 0f, 0f);
+
+				// // Rotate
+				gl.glRotatef((float) (model.getRot_x() + model.getBearing()),
+						1f, 0f, 0f);
 				gl.glRotatef(model.getRot_y(), 0f, 1f, 0f);
 				gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
+
 				// Blenderen
 				if (model.isBlended() == 0) {
 					gl.glEnable(GL10.GL_BLEND);
 					gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
 				}
 
-				//Tekenen
+				// Tekenen
 				model.getModel().draw(gl);
 
 			}

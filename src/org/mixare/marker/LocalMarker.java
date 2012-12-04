@@ -59,6 +59,7 @@ public abstract class LocalMarker implements Marker {
 	protected PhysicalPlace mGeoLoc;
 	/* distance from user to mGeoLoc in meters */
 	protected double distance;
+	protected double bearing;
 	/* Marker's color */
 	private int color;
 	
@@ -306,6 +307,14 @@ public abstract class LocalMarker implements Marker {
 
 	public void setDistance(double distance) {
 		this.distance = distance;
+	}
+	
+	public double getBearing() {
+		return bearing;
+	}
+	
+	public void setBearing(double bearing) {
+		this.bearing = bearing;
 	}
 
 	public void setAltitude(double altitude) {

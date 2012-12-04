@@ -64,6 +64,7 @@ public class DataHandler {
 			Location.distanceBetween(ma.getLatitude(), ma.getLongitude(),
 					location.getLatitude(), location.getLongitude(), dist);
 			ma.setDistance(dist[0]);
+			ma.setBearing(dist[2]);
 		}
 	}
 

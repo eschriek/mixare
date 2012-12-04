@@ -47,6 +47,10 @@ interface IMarkerService {
 	double getDistance(String markerName);
 
 	void setDistance(String markerName, double distance);
+	
+	double getBearing(String markerName);
+
+	void setBearing(String markerName, double bearing);
 
 	String getID(String markerName);
 

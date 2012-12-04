@@ -322,4 +322,22 @@ public class RemoteMarker implements Marker {
 
 	}
 
+	@Override
+	public double getBearing() {
+		try {
+			return iMarkerService.getBearing(markerName);
+		} catch (RemoteException e) {
+			throw new PluginNotFoundException(e);
+		}
+	}
+
+	@Override
+	public void setBearing(double bearing) {
+		try {
+			iMarkerService.setBearing(markerName, bearing);
+		} catch (RemoteException e) {
+			throw new PluginNotFoundException(e);
+		}
+	}
+
 }

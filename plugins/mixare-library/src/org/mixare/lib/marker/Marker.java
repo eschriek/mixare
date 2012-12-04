@@ -59,6 +59,10 @@ public interface Marker extends Comparable<Marker>{
 
 	void setDistance(double distance);
 
+	double getBearing();
+	
+	void setBearing(double bearing);
+	
 	String getID();
 
 	void setID(String iD);
