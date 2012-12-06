@@ -18,23 +18,28 @@
  */
 package org.mixare.lib.gui;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import org.mixare.lib.MixContextInterface;
-import org.mixare.lib.gui.ScreenObj;
-import org.mixare.lib.model3d.OBJParser;
-import org.mixare.lib.model3d.TDModel;
+import org.mixare.lib.model3d.Mesh;
+import org.mixare.lib.model3d.ModelLoadException;
+import org.mixare.lib.model3d.parsers.ObjReader;
+import org.mixare.lib.model3d.parsers.OffReader;
+
+import static org.mixare.lib.model3d.Vertex.X;
+import static org.mixare.lib.model3d.Vertex.Y;
+import static org.mixare.lib.model3d.Vertex.Z;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -69,12 +74,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private long dt;
 	private String info;
 	private double size;
-	private boolean enableBlending;
+	private float rotation;
 	private MixViewInterface app;
 	private DataViewInterface data;
 	private Paint zoomPaint;
 	private HashMap<String, Model3D> models;
 	private MatrixGrabber grabber;
+	private float zNear;
+	private float zFar;
 
 	public PaintScreen(Context cont, DataViewInterface dat) {
 		this();
@@ -92,10 +99,15 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		info = "";
 		size = 0;
 
+		zNear = 0.1f;
+		zFar = 100f;
+
 		GLParameters.ENABLE3D = true;
 		GLParameters.DEBUG = false;
 		GLParameters.BLENDING = true;
 
+		// 4444 Because we need the alpha, 8888 would improve quality at the
+		// cost of speed
 		canvasMap = Bitmap.createBitmap(GLParameters.WIDTH,
 				GLParameters.HEIGHT, Config.ARGB_4444);
 		window = new Square(paint, 0f, 0f, GLParameters.WIDTH,
@@ -138,7 +150,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		gl.glLoadIdentity();
 
-		GLU.gluPerspective(gl, 67f, (float) width / height, 0.1f, 100f);
+		GLU.gluPerspective(gl, 67f, (float) width / height, zNear, zFar);
 
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadIdentity();
@@ -175,10 +187,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			paintText(mWidth - (getTextWidth(info) + 150), mHeight
 					- (mHeight - 100), info + " FPS : " + (1000 / dt)
 					+ " size : " + size + " kb", false);
-			if (enableBlending) {
-				paintText(mWidth - (getTextWidth(info) + 150), mHeight
-						- (mHeight - 120), "Blending is ON o.O", true);
-			}
 
 			if (!data.isInited()) {
 				data.init(mWidth, mHeight);
@@ -216,10 +224,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	// Berekend diepte in een perspective matrix, 0.1 staat voor zNear en 100
-	// staat in dit geval voor zFar; Oftewel gezichtsveld is 99.9 meter
+	// staat in dit geval voor zFar, omdat de radius meestal 100m is; Oftewel
+	// gezichtsveld is 99.9 meter
 	// TODO: zFar aanpassen aan de radius van de marker
 	public float distanceToDepth(float distance) {
-		return ((1 / 0.1f) - (1 / distance)) / ((1 / 0.1f) - (1 / 100f));
+		return ((1 / zNear) - (1 / distance)) / ((1 / zNear) - (1 / zFar));
 	}
 
 	public float[] unproject(float rx, float ry, float rz) {// TODO Factor in
@@ -246,9 +255,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	public void draw3D(GL10 gl) {
+		rotation += 1.50;
+
 		synchronized (models) {
 			for (Model3D model : models.values()) {
 				grabber.getCurrentState(gl);
+
 				// Magische lijntjes, berekend van scherm coordinaten de
 				// bijbehorende projection coordinaten en vertaald ook de
 				// afstand naar het object naar een waarde ten opzichte van
@@ -265,20 +277,32 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				// + model.getBearing());
 
 				// Scale
-				// Schaalen met meer dan 5 zorgt voor enorme objecten. 2.5 keer
-				// het originele formaat ziet er wel redelijk uit.
-				if (model.getSchaal() > 5) {
-					model.setSchaal(2.5f);
+				// Schaalen met meer dan 50 zorgt voor enorme objecten.
+				if (model.getSchaal() > 50) {
+					model.setSchaal(25);
+				} else if (model.getSchaal() < 20) {
+					model.setSchaal(25);
 				}
 
 				gl.glScalef(model.getSchaal(), model.getSchaal(),
 						model.getSchaal());
 
-				// // Rotate
-				gl.glRotatef((float) (model.getRot_x() + model.getBearing()),
-						1f, 0f, 0f);
-				gl.glRotatef(model.getRot_y(), 0f, 1f, 0f);
-				gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
+				// Rotate
+				gl.glRotatef(rotation, 0f, 0f, 0f);
+
+				// If you want to rotate based on location use
+				// model.getBearing()
+
+				// gl.glRotatef((float) (model.getRot_x() + model.getBearing()),
+				// 1f, 0f, 0f);
+				// gl.glRotatef(model.getRot_y(), 0f, 1f, 0f);
+				// gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
+
+				// Tekenen
+				if (model.getColor() != 0) {
+					float[] rgb = Util.hexToRGB(model.getColor());
+					gl.glColor4f(rgb[0], rgb[1], rgb[2], 0.4f);
+				}
 
 				// Blenderen
 				if (model.isBlended() == 0) {
@@ -286,14 +310,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
 				}
 
-				// Tekenen
 				model.getModel().draw(gl);
 
+				gl.glColor4f(1f, 1f, 1f, 1f);
 			}
 		}
 	}
 
-	public void paint3DModel(Model3D model) {
+	public void paint3DModel(Model3D model) throws ModelLoadException {
 		Iterator<Entry<String, Model3D>> it = models.entrySet().iterator();
 		boolean create = false;
 
@@ -314,21 +338,36 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					entry.getValue().update(model);
 					break;
 				}
-
 			} else {
 				create = true;
 			}
 		}
 
 		if (create) {
-			Log.i(TAG, "Create!");
-			// Why not one parser instance, because it segfaults.Why? No idea!
-			OBJParser parser = new OBJParser((Context) app);
+			Mesh tmp = null;
 			try {
-				model.setModel(parser.parseOBJ(model.getObj()));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				InputStream input = new FileInputStream(model.getObj());
+				if (input != null) {
+					if (model.getObj().endsWith(".txt")) {
+						tmp = new OffReader((Context) app).readMesh(input);
+					}
+					if (model.getObj().endsWith(".obj")) {
+						tmp = new ObjReader((Context) app).readMesh(input);
+					}
+					if (tmp != null) {
+						model.setModel(tmp);
+					} else {
+						throw new ModelLoadException();
+					}
+
+				}
+			} catch (IOException ioe) {
+				ModelLoadException mle = new ModelLoadException(ioe);
+				mle.setPath(model.getObj());
+				throw mle;
+			} catch (ModelLoadException mle) {
+				mle.setPath(model.getObj());
+				throw mle;
 			}
 			models.put(model.getObj(), model);
 		}

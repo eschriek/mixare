@@ -20,6 +20,7 @@ package org.mixare.lib.marker.draw;
 
 import org.mixare.lib.gui.Model3D;
 import org.mixare.lib.gui.PaintScreen;
+import org.mixare.lib.model3d.ModelLoadException;
 import org.mixare.lib.render.MixVector;
 
 import android.graphics.Bitmap;
@@ -69,12 +70,15 @@ public class DrawObj extends DrawCommand {
 				Log.e("mixare-lib", "object = null");
 				return;
 			}
-			
-			object.setxPos(signMarker.x);
+
+			object.setxPos(signMarker.x - 0);
 			object.setyPos(signMarker.y - (35));
-			dw.paint3DModel(object);
-			// dw.paintBitmap(bitmap, signMarker.x - (bitmap.getWidth()/2),
-			// signMarker.y - (bitmap.getHeight() / 2));
+			
+			try {
+				dw.paint3DModel(object);
+			} catch (ModelLoadException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

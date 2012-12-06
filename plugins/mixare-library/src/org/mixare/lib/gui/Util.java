@@ -13,10 +13,9 @@ import android.opengl.GLUtils;
 
 /**
  * Utils
- * @author Edwin Schriek
- * Nov 14, 2012
- * mixare-library
- *
+ * 
+ * @author Edwin Schriek Nov 14, 2012 mixare-library
+ * 
  */
 public class Util {
 
@@ -24,8 +23,11 @@ public class Util {
 
 	/**
 	 * Convert the color from a Paint object to float
-	 * @param paint Paint object that must be converted
-	 * @return Returns a float array which contains the converted color, which can be used by glColorf
+	 * 
+	 * @param paint
+	 *            Paint object that must be converted
+	 * @return Returns a float array which contains the converted color, which
+	 *         can be used by glColorf
 	 */
 	public static float[] paintColorByteToFloat(Paint paint) {
 
@@ -39,21 +41,42 @@ public class Util {
 	}
 
 	/**
-	 * Generates a texture from a bitmap
-	 * TODO: Optimise
-	 * @param gl The gl object supplied by onDraw
-	 * @param bitmap The bitmap that should be converted
-	 * @return The resulting texture
-	 * @throws a GLException if something went wrong
+	 * Convert hex value (0xFFFFFF) to a value whhich glColor4f can understand.
+	 * Does not calculate alpha, because blending takes care of this
+	 * 
+	 * @param hex The color in hex thats need to be converted
+	 * @return Returns useable rgb values (0-1)
 	 */
-	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap) throws GLException {
+	public static float[] hexToRGB(int hex) {
+		float[] rgb = new float[3];
+		rgb[0] = ((hex & 0xFF0000) >> 16) / 255f;
+		rgb[1] = ((hex & 0xFF00) >> 8) / 255f;
+		rgb[2] = ((hex & 0xFF)) / 255f;
+
+		return rgb;
+	}
+
+	/**
+	 * Generates a texture from a bitmap TODO: Optimise
+	 * 
+	 * @param gl
+	 *            The gl object supplied by onDraw
+	 * @param bitmap
+	 *            The bitmap that should be converted
+	 * @return The resulting texture
+	 * @throws a
+	 *             GLException if something went wrong
+	 */
+	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap)
+			throws GLException {
 
 		gl.glDeleteTextures(1, textures, 0);
 		gl.glGenTextures(1, textures, 0);
 
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 
-		gl.glTexEnvf(GL10.GL_TEXTURE_ENV, GL10.GL_TEXTURE_ENV_MODE, GL10.GL_MODULATE);
+		gl.glTexEnvf(GL10.GL_TEXTURE_ENV, GL10.GL_TEXTURE_ENV_MODE,
+				GL10.GL_MODULATE);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
 				GL10.GL_NEAREST);
 		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,

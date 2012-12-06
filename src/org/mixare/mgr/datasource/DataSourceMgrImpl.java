@@ -67,7 +67,7 @@ class DataSourceMgrImpl implements DataSourceManager {
 					.getDataSource(i));
 		}
 	}
-
+	
 	public void requestDataFromAllActiveDataSource(double lat, double lon,
 			double alt, float radius) {
 		for (DataSource ds : allDataSources) {

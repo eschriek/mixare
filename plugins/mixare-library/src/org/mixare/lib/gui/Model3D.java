@@ -1,6 +1,6 @@
 package org.mixare.lib.gui;
 
-import org.mixare.lib.model3d.TDModel;
+import org.mixare.lib.model3d.Mesh;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -14,8 +14,9 @@ public class Model3D implements Parcelable {
 	private int blended;
 	private double distance;
 	private double bearing;
-	private TDModel model;
-
+	private int color;
+	private Mesh model;
+	
 	public static final Parcelable.Creator<Model3D> CREATOR = new Parcelable.Creator<Model3D>() {
 		public Model3D createFromParcel(Parcel in) {
 			return new Model3D(in);
@@ -53,11 +54,11 @@ public class Model3D implements Parcelable {
 		this.blended = object.isBlended();
 	}
 
-	public TDModel getModel() {
+	public Mesh getModel() {
 		return model;
 	}
 
-	public void setModel(TDModel model) {
+	public void setModel(Mesh model) {
 		this.model = model;
 	}
 
@@ -149,6 +150,14 @@ public class Model3D implements Parcelable {
 		this.bearing = bearing;
 	}
 
+	public int getColor() {
+		return color;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
+	}
+
 	@Override
 	public int describeContents() {
 		return 0;
@@ -166,6 +175,7 @@ public class Model3D implements Parcelable {
 		dest.writeInt(blended);
 		dest.writeDouble(distance);
 		dest.writeDouble(bearing);
+		dest.writeInt(color);
 	}
 
 	public void readParcel(Parcel in) {
@@ -179,6 +189,7 @@ public class Model3D implements Parcelable {
 		blended = in.readInt();
 		distance = in.readDouble();
 		bearing = in.readDouble();
+		color = in.readInt();
 	}
 
 }

@@ -17,4 +17,5 @@ public class GLParameters {
 	public static boolean SOFTWARERENDERER = false;
 	public static boolean isOPENGL10 = false;
 	public static boolean ENABLE3D = false;
+	public static boolean ENABLEBACKFACES = false;
 }

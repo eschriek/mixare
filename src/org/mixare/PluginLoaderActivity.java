@@ -160,6 +160,7 @@ public class PluginLoaderActivity extends Activity {
 	}
 
 	private void loadPlugins() {
+		Log.i("Mixare", "loadPlugins");
 		PluginLoader.getInstance().setActivity(this);
 		PluginLoader.getInstance().loadPlugin(PluginType.MARKER);
 		PluginLoader.getInstance().loadPlugin(PluginType.BOOTSTRAP_PHASE_2);
