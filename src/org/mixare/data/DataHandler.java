@@ -67,7 +67,7 @@ public class DataHandler {
 			ma.setBearing(dist[2]);
 		}
 	}
-
+	
 	public void updateActivationStatus(MixContext mixContext) {
 
 		Hashtable<Class, Integer> map = new Hashtable<Class, Integer>();

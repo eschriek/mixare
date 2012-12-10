@@ -19,8 +19,6 @@ import android.opengl.GLUtils;
  */
 public class Util {
 
-	private static int[] textures = new int[1];
-
 	/**
 	 * Convert the color from a Paint object to float
 	 * 
@@ -44,7 +42,8 @@ public class Util {
 	 * Convert hex value (0xFFFFFF) to a value whhich glColor4f can understand.
 	 * Does not calculate alpha, because blending takes care of this
 	 * 
-	 * @param hex The color in hex thats need to be converted
+	 * @param hex
+	 *            The color in hex thats need to be converted
 	 * @return Returns useable rgb values (0-1)
 	 */
 	public static float[] hexToRGB(int hex) {
@@ -70,6 +69,7 @@ public class Util {
 	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap)
 			throws GLException {
 
+		int[] textures = new int[1];
 		gl.glDeleteTextures(1, textures, 0);
 		gl.glGenTextures(1, textures, 0);
 
@@ -88,8 +88,8 @@ public class Util {
 
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
 
-		// GLUtils.texSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, bitmap,
-		// GL10.GL_RGBA, GL10.GL_UNSIGNED_SHORT_4_4_4_4);
+//		GLUtils.texSubImage2D(GL10.GL_TEXTURE_2D, 0, 50, 50, bitmap,
+//				GL10.GL_RGBA, GL10.GL_UNSIGNED_SHORT_4_4_4_4);
 
 		int error = gl.glGetError();
 		if (error != GL10.GL_NO_ERROR) {

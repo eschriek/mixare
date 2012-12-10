@@ -65,7 +65,7 @@ public class DrawImage extends DrawCommand{
 				Log.e("mixare-lib", "bitmap = null");
 				return;
 			}
-			dw.paintBitmap(bitmap, signMarker.x - (bitmap.getWidth()/2), signMarker.y - (bitmap.getHeight() / 2));
+			dw.paintBitmapGL(bitmap, signMarker.x - (bitmap.getWidth()/2), signMarker.y - (bitmap.getHeight() / 2));
 		}
 	}	
 	

@@ -72,7 +72,7 @@ public class DrawObj extends DrawCommand {
 			}
 
 			object.setxPos(signMarker.x - 0);
-			object.setyPos(signMarker.y - (35));
+			object.setyPos(signMarker.y - (15));
 			
 			try {
 				dw.paint3DModel(object);

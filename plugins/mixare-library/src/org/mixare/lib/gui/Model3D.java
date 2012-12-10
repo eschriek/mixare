@@ -15,6 +15,7 @@ public class Model3D implements Parcelable {
 	private double distance;
 	private double bearing;
 	private int color;
+	private double radius;
 	private Mesh model;
 	
 	public static final Parcelable.Creator<Model3D> CREATOR = new Parcelable.Creator<Model3D>() {
@@ -158,6 +159,14 @@ public class Model3D implements Parcelable {
 		this.color = color;
 	}
 
+	public double getRadius() {
+		return radius;
+	}
+
+	public void setRadius(double radius) {
+		this.radius = radius;
+	}
+
 	@Override
 	public int describeContents() {
 		return 0;
@@ -176,6 +185,7 @@ public class Model3D implements Parcelable {
 		dest.writeDouble(distance);
 		dest.writeDouble(bearing);
 		dest.writeInt(color);
+		dest.writeDouble(radius);
 	}
 
 	public void readParcel(Parcel in) {
@@ -190,6 +200,7 @@ public class Model3D implements Parcelable {
 		distance = in.readDouble();
 		bearing = in.readDouble();
 		color = in.readInt();
+		radius = in.readDouble();
 	}
 
 }

@@ -22,9 +22,11 @@ import android.view.Window;
 import android.view.WindowManager;
 
 /**
- * This is the plugin loading activity for mixare. This activity will load a splashscreen and then initializes the PluginLoader
- * It will then launch the visible bootstrap plugins and waits for their results. After all bootstrap plugins are loaded
- * then mixare will be launched.
+ * This is the plugin loading activity for mixare. This activity will load a
+ * splashscreen and then initializes the PluginLoader It will then launch the
+ * visible bootstrap plugins and waits for their results. After all bootstrap
+ * plugins are loaded then mixare will be launched.
+ * 
  * @author A.Egal
  */
 public class PluginLoaderActivity extends Activity {
@@ -34,21 +36,25 @@ public class PluginLoaderActivity extends Activity {
 	private static final String CLOSE_ACTIVITY_CALL = "closed";
 	protected Handler exitHandler = null;
 	protected Runnable exitRunnable = null;
-	
+
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		Bundle extras = getIntent().getExtras();
-		if (extras != null){
-			try {
-				if (extras.containsKey("AppName")) {
-					getInstalledPluginsByName(extras.getString("AppName"));
+		try {
+			Bundle extras = getIntent().getExtras();
+			if (extras != null) {
+				try {
+					if (extras.containsKey("AppName")) {
+						getInstalledPluginsByName(extras.getString("AppName"));
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-			} catch (Exception e) {
-				e.printStackTrace();
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		DataSourceStorage.init(this);
@@ -62,7 +68,7 @@ public class PluginLoaderActivity extends Activity {
 			startDefaultSplashScreen();
 		}
 	}
-	
+
 	private void startDefaultSplashScreen() {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -83,8 +89,8 @@ public class PluginLoaderActivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			if(exitHandler != null){
-				//only call this when the default splashscreen is used
+			if (exitHandler != null) {
+				// only call this when the default splashscreen is used
 				exitHandler.removeCallbacks(exitRunnable);
 			}
 			startMixare();
@@ -95,12 +101,13 @@ public class PluginLoaderActivity extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
-		if(data != null && data.getExtras() != null && data.getExtras().getString(CLOSE_ACTIVITY_CALL) != null){
-			//back button was pressed, close mixare now.
+		if (data != null && data.getExtras() != null
+				&& data.getExtras().getString(CLOSE_ACTIVITY_CALL) != null) {
+			// back button was pressed, close mixare now.
 			finish();
 			return;
 		}
-		
+
 		if (requestCode == 0) {
 			finish();
 			return;
@@ -114,12 +121,12 @@ public class PluginLoaderActivity extends Activity {
 	}
 
 	private void startMixare() {
-		if(!PluginLoader.getInstance().isPluginTypeLoaded(PluginType.MARKER)){
+		if (!PluginLoader.getInstance().isPluginTypeLoaded(PluginType.MARKER)) {
 			loadPlugins();
 		}
 		if (arePendingActivitiesFinished()) {
 			startActivity(new Intent(this, MixView.class));
-			//startActivityForResult(new Intent(this, MixView.class),0);
+			// startActivityForResult(new Intent(this, MixView.class),0);
 			finish();
 		}
 	}
@@ -182,9 +189,8 @@ public class PluginLoaderActivity extends Activity {
 				String lable = (String) resolveInfo.loadLabel(packageManager);
 				if (lable.equalsIgnoreCase(name)) {
 					Plugin plugin = new Plugin(PluginStatus.Activated,
-						resolveInfo.serviceInfo,
-						lable,
-						resolveInfo.loadIcon(packageManager), pluginType);
+							resolveInfo.serviceInfo, lable,
+							resolveInfo.loadIcon(packageManager), pluginType);
 					MainActivity.getPlugins().add(plugin);
 				}
 			}

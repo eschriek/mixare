@@ -18,14 +18,14 @@
  */
 package org.mixare.lib.gui;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -34,10 +34,8 @@ import org.mixare.lib.model3d.Mesh;
 import org.mixare.lib.model3d.ModelLoadException;
 import org.mixare.lib.model3d.parsers.ObjReader;
 import org.mixare.lib.model3d.parsers.OffReader;
-
-import static org.mixare.lib.model3d.Vertex.X;
-import static org.mixare.lib.model3d.Vertex.Y;
-import static org.mixare.lib.model3d.Vertex.Z;
+import org.mixare.lib.model3d.text.GLText;
+import org.mixare.lib.model3d.text.TextBox;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -47,11 +45,11 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PointF;
 import android.graphics.RectF;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
-import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -78,10 +76,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private MixViewInterface app;
 	private DataViewInterface data;
 	private Paint zoomPaint;
+	private GLText text, textInfo;
 	private HashMap<String, Model3D> models;
+	private Set<TextBox> text3d;
+	private Set<Square> images;
 	private MatrixGrabber grabber;
 	private float zNear;
 	private float zFar;
+	private int counter;
 
 	public PaintScreen(Context cont, DataViewInterface dat) {
 		this();
@@ -98,6 +100,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		zoomPaint = new Paint();
 		info = "";
 		size = 0;
+		counter = 1;
 
 		zNear = 0.1f;
 		zFar = 100f;
@@ -108,11 +111,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		// 4444 Because we need the alpha, 8888 would improve quality at the
 		// cost of speed
-		canvasMap = Bitmap.createBitmap(GLParameters.WIDTH,
-				GLParameters.HEIGHT, Config.ARGB_4444);
-		window = new Square(paint, 0f, 0f, GLParameters.WIDTH,
-				GLParameters.HEIGHT);
+		canvasMap = Bitmap.createBitmap(120, 120, Config.ARGB_4444);
+		window = new Square(paint, 0f, 0f, 120, 120);
 
+		text3d = new HashSet<TextBox>();
+		images = new HashSet<Square>();
 		canvas = new Canvas(canvasMap);
 		grabber = new MatrixGrabber();
 		models = new HashMap<String, Model3D>();
@@ -176,17 +179,15 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glTranslatef(0.375f, 0.375f, 0.0f);
 
 		gl.glDisable(GL10.GL_DEPTH_TEST);
-		gl.glDisable(GL10.GL_BLEND);
 		gl.glEnable(GL10.GL_TEXTURE_2D);
+		gl.glEnable(GL10.GL_BLEND); // Enable Alpha Blend
+		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	@SuppressLint("NewApi")
 	public void draw2D(GL10 gl) {
 		if (window != null && canvasMap != null) {
 			size = (canvasMap.getHeight() * canvasMap.getRowBytes()) / 1024;
-			paintText(mWidth - (getTextWidth(info) + 150), mHeight
-					- (mHeight - 100), info + " FPS : " + (1000 / dt)
-					+ " size : " + size + " kb", false);
 
 			if (!data.isInited()) {
 				data.init(mWidth, mHeight);
@@ -215,11 +216,35 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 			data.draw(this);
 
+			textInfo.begin();
+			textInfo.draw(info + " FPS : " + (1000 / dt) + " size : " + size
+					+ " kb", (mWidth - (getTextWidth(info) + 210)), mHeight
+					- (mHeight - 100));
+			textInfo.end();
+
 			try {
+				for (Square s : images) {
+					if (s.getTextures()[0] == 0) {
+						s.setTextures(Util.loadGLTexture(gl, s.getImg()));
+					}
+					s.draw(gl);
+				}
 				window.draw(gl, Util.loadGLTexture(gl, canvasMap));
 			} catch (GLException e) {
 				// TODO: Throw this to a toast?
 			}
+			
+
+			text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering (Set
+												// Color WHITE)
+
+			for (TextBox t : text3d) {
+				text.draw(t.getTekst(),
+						t.getLoc().x - (text.getLength(t.getTekst()) / 2),
+						(mHeight - t.getLoc().y));
+			}
+
+			text.end();
 		}
 	}
 
@@ -255,7 +280,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	public void draw3D(GL10 gl) {
-		rotation += 1.50;
+		rotation += 2.50;
 
 		synchronized (models) {
 			for (Model3D model : models.values()) {
@@ -265,9 +290,18 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				// bijbehorende projection coordinaten en vertaald ook de
 				// afstand naar het object naar een waarde ten opzichte van
 				// zNear en zFar
-				float[] points = unproject(model.getxPos(),
-						(GLParameters.HEIGHT - model.getyPos()),
-						distanceToDepth((float) model.getDistance()));
+				gl.glPushMatrix();
+				float[] points = null;
+				if (model.getColor() == org.mixare.lib.model3d.Color.TO_FAR) {
+					points = unproject(model.getxPos(),
+							(GLParameters.HEIGHT - model.getyPos()),
+							distanceToDepth(50)); // Als het te ver is willen we
+													// dat wel zien
+				} else {
+					points = unproject(model.getxPos(),
+							(GLParameters.HEIGHT - model.getyPos()),
+							distanceToDepth((float) model.getDistance()));
+				}
 
 				gl.glTranslatef(points[0], points[1], points[2]);
 
@@ -288,7 +322,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 						model.getSchaal());
 
 				// Rotate
-				gl.glRotatef(rotation, 0f, 0f, 0f);
+				gl.glRotatef(rotation, 0f, 1f, 0f);
 
 				// If you want to rotate based on location use
 				// model.getBearing()
@@ -311,10 +345,47 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				}
 
 				model.getModel().draw(gl);
-
-				gl.glColor4f(1f, 1f, 1f, 1f);
+				gl.glPopMatrix();
+				gl.glColor4f(1f, 1f, 1f, 1f); // Kleur resetten
 			}
 		}
+	}
+
+	/**
+	 * TODO improve this method cause it's horrible. Images are to big, the
+	 * performance gets blown to pieces and the code is just plain stupid. The
+	 * only postive thing about this, is that it is faster then canvas
+	 * 
+	 * @param img
+	 * @param x
+	 * @param y
+	 */
+	public void paintBitmapGL(Bitmap img, float x, float y) {
+		boolean create = false;
+
+		if (images.isEmpty()) {
+			create = true;
+		}
+
+		Square tmp = new Square("bitmap" + img.getHeight(), img, paint, x, y,
+				img.getWidth(), img.getHeight());
+		for (Square s : images) {
+			if (s.equals(tmp)) {
+				s.update(tmp);
+				create = false;
+				break;
+			} else {
+				create = true;
+			}
+		}
+		if (create) {
+			images.add(tmp);
+			counter++;
+		}
+	}
+
+	public void paintText3D(String wat, PointF waar) {
+		text3d.add(new TextBox(wat, waar));
 	}
 
 	public void paint3DModel(Model3D model) throws ModelLoadException {
@@ -379,6 +450,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		long time1 = System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		canvasMap.eraseColor(0);
+		text3d.clear();
 
 		ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
 		draw2D(gl);
@@ -411,6 +483,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		Log.i(TAG, "onSurfaceCreated");
 		dt = 1;
+
+		text = new GLText(gl, ((Context) app).getAssets());
+		textInfo = new GLText(gl, ((Context) app).getAssets());
+
+		textInfo.load("Roboto-Regular.ttf", 14, 2, 2);
+		text.load("Roboto-Regular.ttf", 30, 2, 2);
 
 		String extensions = gl.glGetString(GL10.GL_EXTENSIONS);
 		String version = gl.glGetString(GL10.GL_VERSION);
