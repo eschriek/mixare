@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.Set;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -44,9 +45,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.PointF;
-import android.graphics.RectF;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
@@ -56,7 +55,9 @@ import android.util.Log;
 
 /**
  * Duplicate of the original Paintscreen which used a canvas. It still uses the
- * canvas but the actual drawing is done by opengl.
+ * canvas for certain parts of the screen like the radar because rewriting it
+ * for openGL won't increase the speed much.
+ * 
  * 
  * @author Edwin Schriek Nov 14, 2012 mixare-library
  * 
@@ -81,18 +82,27 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private Set<TextBox> text3d;
 	private Set<Square> images;
 	private MatrixGrabber grabber;
+	private Mesh poi;
+	private Mesh triangle;
 	private float zNear;
 	private float zFar;
-	private int counter;
 
 	public PaintScreen(Context cont, DataViewInterface dat) {
 		this();
 
 		data = (DataViewInterface) dat;
-
-		assert (data) != null;
-
 		app = (MixViewInterface) cont;
+
+		try {
+			InputStream in = ((Context) app).getAssets().open("poi.obj");
+			InputStream in2 = ((Context) app).getAssets().open("triangle.off");
+			triangle = new OffReader((Context) app).readMesh(in2);
+			poi = new ObjReader((Context) app).readMesh(in);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ModelLoadException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public PaintScreen() {
@@ -100,7 +110,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		zoomPaint = new Paint();
 		info = "";
 		size = 0;
-		counter = 1;
 
 		zNear = 0.1f;
 		zFar = 100f;
@@ -111,8 +120,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		// 4444 Because we need the alpha, 8888 would improve quality at the
 		// cost of speed
-		canvasMap = Bitmap.createBitmap(120, 120, Config.ARGB_4444);
-		window = new Square(paint, 0f, 0f, 120, 120);
+		canvasMap = Bitmap.createBitmap(110, 120, Config.ARGB_4444);
+		window = new Square(paint, 0f, (mHeight - 0f), 110, 120);
 
 		text3d = new HashSet<TextBox>();
 		images = new HashSet<Square>();
@@ -144,6 +153,20 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		}
 	};
 
+	/**
+	 * Puts the projection matrix in perspective based on zFar, zNear, width and
+	 * height. Also enables depth and disables textures
+	 * 
+	 * 
+	 * @param gl
+	 *            GL object supplied by onDrawFrame
+	 * @param width
+	 *            Width of the matrix, usually screen width. Also used to
+	 *            calculate aspect ratio used by gluPerspective
+	 * @param height
+	 *            Height of the matrix, usually screen height. Also used to
+	 *            calculate aspect ratio used by gluPerspective
+	 */
 	public void ready3D(GL10 gl, int width, int height) {
 		if (GLParameters.DEBUG)
 			Log.i(TAG, "Ready3D " + width + " " + height);
@@ -158,7 +181,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glMatrixMode(GL10.GL_MODELVIEW);
 		gl.glLoadIdentity();
 
-		// gl.glClearDepthf(1.0f);
 		gl.glEnable(GL10.GL_DEPTH_TEST);
 		gl.glDepthFunc(GL10.GL_LEQUAL);
 
@@ -166,6 +188,17 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glDisable(GL10.GL_TEXTURE_2D);
 	}
 
+	/**
+	 * Puts the projection matrix in parallel projection (ortho). Disables depth
+	 * and enables textures and blending
+	 * 
+	 * @param gl
+	 *            GL object supplied by onDrawFrame
+	 * @param width
+	 *            Width of the matrix, usually screen width
+	 * @param height
+	 *            Height of the matrix, usually screen height
+	 */
 	public void ready2D(GL10 gl, int width, int height) {
 		if (GLParameters.DEBUG)
 			Log.i(TAG, "Ready2D " + width + " " + height);
@@ -184,6 +217,13 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+	/**
+	 * This method is used to draw everything without depth. This means
+	 * everything but 3d models.
+	 * 
+	 * @param gl
+	 *            GL object supplied by onDrawFrame
+	 */
 	@SuppressLint("NewApi")
 	public void draw2D(GL10 gl) {
 		if (window != null && canvasMap != null) {
@@ -200,8 +240,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				endKM = "80km";
 				startKM = "0km";
 
-				paintText(canvas.getWidth() / 100 * 4,
-						canvas.getHeight() / 100 * 85, startKM, false);
+				// paintText(canvas.getWidth() / 100 * 4,
+				// canvas.getHeight() / 100 * 85, startKM, false);
 				canvas.drawText(endKM, canvas.getWidth() / 100 * 99 + 25,
 						canvas.getHeight() / 100 * 85, zoomPaint);
 
@@ -223,39 +263,63 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			textInfo.end();
 
 			try {
+				gl.glPushMatrix();
+				gl.glTranslatef(0, mHeight, 0);
+				window.draw(gl, Util.loadGLTexture(gl, canvasMap));
+				gl.glPopMatrix();
 				for (Square s : images) {
-					if (s.getTextures()[0] == 0) {
+					if (s.getTextures()[0] == 0 && s.getImg() != null) {
 						s.setTextures(Util.loadGLTexture(gl, s.getImg()));
 					}
 					s.draw(gl);
+
 				}
-				window.draw(gl, Util.loadGLTexture(gl, canvasMap));
 			} catch (GLException e) {
 				// TODO: Throw this to a toast?
 			}
-			
 
 			text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering (Set
-												// Color WHITE)
+												// Color WHITE), for alpha
 
 			for (TextBox t : text3d) {
+				// System.out.println(t.getRotation());
+				gl.glPushMatrix();
+				// gl.glRotatef(t.getRotation(), 0, 1, 0);
 				text.draw(t.getTekst(),
-						t.getLoc().x - (text.getLength(t.getTekst()) / 2),
+						t.getLoc().x - (getTextWidth(t.getTekst()) / 2),
 						(mHeight - t.getLoc().y));
+				gl.glPopMatrix();
 			}
 
 			text.end();
 		}
 	}
 
-	// Berekend diepte in een perspective matrix, 0.1 staat voor zNear en 100
-	// staat in dit geval voor zFar, omdat de radius meestal 100m is; Oftewel
-	// gezichtsveld is 99.9 meter
-	// TODO: zFar aanpassen aan de radius van de marker
+	/**
+	 * Calculates distance in meters to a corresponding Z value in perspective
+	 * view. TODO: Adjust zFar to the radius of the marker
+	 * 
+	 * @param distance
+	 *            Dinstance in meters which should be > zNear && < zFar.
+	 * @return a Z value which can be used by glTranslate
+	 */
 	public float distanceToDepth(float distance) {
 		return ((1 / zNear) - (1 / distance)) / ((1 / zNear) - (1 / zFar));
 	}
 
+	/**
+	 * Translates screen coordinates into corresponding coordinates in
+	 * perspective view.
+	 * 
+	 * @param rx
+	 *            X coordinate
+	 * @param ry
+	 *            Y coordinate
+	 * @param rz
+	 *            Z coordinate
+	 * @return Returns a float array of size 3 containing the translated
+	 *         coordinates
+	 */
 	public float[] unproject(float rx, float ry, float rz) {// TODO Factor in
 															// projection matrix
 		float[] modelInv = new float[16];
@@ -279,6 +343,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		return endResult;
 	}
 
+	/**
+	 * This method draws everything which needs a depth buffer. At the moment
+	 * this only concerns 3D models which can be added by
+	 * {@link PaintScreen#paint3DModel(Model3D)}
+	 * 
+	 * @param gl
+	 *            GL object supplied by onDrawFrame
+	 */
 	public void draw3D(GL10 gl) {
 		rotation += 2.50;
 
@@ -306,8 +378,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				gl.glTranslatef(points[0], points[1], points[2]);
 
 				// System.out.println(model.getDistance() + " " + points[2]
-				// + model.getSchaal() + " " + model.getRot_x() + " "
-				// + model.getRot_y() + " " + model.isBlended() + " "
+				// + model.getSchaal() + " " + model.getxPos() + " "
+				// + model.getyPos() + " " + model.isBlended() + " "
 				// + model.getBearing());
 
 				// Scale
@@ -327,7 +399,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				// If you want to rotate based on location use
 				// model.getBearing()
 
-				// gl.glRotatef((float) (model.getRot_x() + model.getBearing()),
+				// gl.glRotatef((float) (model.getRot_x() +
+				// model.getBearing()),
 				// 1f, 0f, 0f);
 				// gl.glRotatef(model.getRot_y(), 0f, 1f, 0f);
 				// gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
@@ -347,6 +420,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				model.getModel().draw(gl);
 				gl.glPopMatrix();
 				gl.glColor4f(1f, 1f, 1f, 1f); // Kleur resetten
+
 			}
 		}
 	}
@@ -357,37 +431,58 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * only postive thing about this, is that it is faster then canvas
 	 * 
 	 * @param img
+	 *            The bitmap
 	 * @param x
+	 *            X coordinate
 	 * @param y
+	 *            Y coordinate
 	 */
 	public void paintBitmapGL(Bitmap img, float x, float y) {
-		boolean create = false;
-
-		if (images.isEmpty()) {
-			create = true;
-		}
-
-		Square tmp = new Square("bitmap" + img.getHeight(), img, paint, x, y,
-				img.getWidth(), img.getHeight());
-		for (Square s : images) {
-			if (s.equals(tmp)) {
-				s.update(tmp);
-				create = false;
-				break;
-			} else {
-				create = true;
-			}
-		}
-		if (create) {
-			images.add(tmp);
-			counter++;
-		}
+		// boolean create = false;
+		//
+		// if (images.isEmpty()) {
+		// create = true;
+		// }
+		//
+		// Square tmp = new Square("bitmap" + img.getHeight(), img, paint, x,
+		// (mHeight - y), img.getWidth(), img.getHeight());
+		// for (Square s : images) {
+		// if (s.equals(tmp)) {
+		// s.update(tmp);
+		// create = false;
+		// break;
+		// } else {
+		// create = true;
+		// }
+		// }
+		// if (create) {
+		// images.add(tmp);
+		// }
+		images.add(new Square("" + new Random(0).nextInt(), img, paint, x, y,
+				img.getWidth(), img.getHeight()));
 	}
 
-	public void paintText3D(String wat, PointF waar) {
-		text3d.add(new TextBox(wat, waar));
+	/**
+	 * Text drawing with opengl.
+	 * 
+	 * @see GLText
+	 * @param tekst
+	 *            The string which you want to draw
+	 * @param location
+	 *            Where you want to draw it
+	 */
+	public void paintText3D(String tekst, PointF location, float rotation) {
+		text3d.add(new TextBox(tekst, location, rotation));
 	}
 
+	/**
+	 * Puts the model in a set ready for drawing. Also makes sure that a model
+	 * gets only loads once.
+	 * 
+	 * @param model
+	 * @throws ModelLoadException
+	 *             Something went wrong with loading the model, see stracktrace
+	 */
 	public void paint3DModel(Model3D model) throws ModelLoadException {
 		Iterator<Entry<String, Model3D>> it = models.entrySet().iterator();
 		boolean create = false;
@@ -417,20 +512,25 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		if (create) {
 			Mesh tmp = null;
 			try {
-				InputStream input = new FileInputStream(model.getObj());
-				if (input != null) {
-					if (model.getObj().endsWith(".txt")) {
-						tmp = new OffReader((Context) app).readMesh(input);
+				if (model.getObj().endsWith("poi")) {
+					tmp = poi;
+				} else if (model.getObj().endsWith("triangle")) {
+					tmp = triangle;
+				} else {
+					InputStream input = new FileInputStream(model.getObj());
+					if (input != null) {
+						if (model.getObj().endsWith(".txt")) { // TODO: file
+																// store
+																// fixen
+							tmp = new OffReader((Context) app).readMesh(input);
+						}
+						if (model.getObj().endsWith(".obj")) {
+							tmp = new ObjReader((Context) app).readMesh(input);
+						}
 					}
-					if (model.getObj().endsWith(".obj")) {
-						tmp = new ObjReader((Context) app).readMesh(input);
-					}
-					if (tmp != null) {
-						model.setModel(tmp);
-					} else {
-						throw new ModelLoadException();
-					}
-
+				}
+				if (tmp != null) {
+					model.setModel(tmp);
 				}
 			} catch (IOException ioe) {
 				ModelLoadException mle = new ModelLoadException(ioe);
@@ -440,6 +540,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				mle.setPath(model.getObj());
 				throw mle;
 			}
+
 			models.put(model.getObj(), model);
 		}
 
@@ -450,7 +551,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		long time1 = System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 		canvasMap.eraseColor(0);
+		models.clear();
 		text3d.clear();
+		images.clear();
 
 		ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
 		draw2D(gl);
@@ -464,8 +567,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		gl.glPopMatrix();
 		dt = System.currentTimeMillis() - time1;
+
 	}
 
+	/**
+	 * Screen rotation, will not happen in Mixare
+	 */
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		Log.i(TAG, "onSurfaceChanged " + width + " " + height);
 
@@ -480,6 +587,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	}
 
+	/**
+	 * Sets up GLText and checks for openGL extensions.
+	 */
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		Log.i(TAG, "onSurfaceCreated");
 		dt = 1;
@@ -557,34 +667,72 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		canvas.drawRect(x, y, x + width, y + height, paint);
 	}
 
-	public void paintRoundedRect(float x, float y, float width, float height) {
-		// rounded edges. patch by Ignacio Avellino
+	public void paintCircle(String id, float x, float y, float radius) {
+		if (id.equalsIgnoreCase("radar")) {
+			canvas.drawCircle(x, y, radius, paint);
+		} else {
+			try {
+				Model3D circleModel = new Model3D();
 
-		RectF rect = new RectF(x, y, x + width, y + height);
-		canvas.drawRoundRect(rect, 15F, 15F, paint);
+				circleModel.setDistance(90);
+				circleModel.setSchaal(20);
+				circleModel.setObj(id);
+				circleModel.setColor(0xFF0000);
+				circleModel.setxPos(x);
+				circleModel.setyPos(y);
+				paint3DModel(circleModel);
+			} catch (ModelLoadException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
-	public void paintBitmap(Bitmap bitmap, float left, float top) {
+	public void paintTriangle(String id, float x, float y, float radius) {
+		try {
+			Model3D triangleModel = new Model3D();
 
-		canvas.drawBitmap(bitmap, left, top, paint);
-	}
-
-	public void paintPath(Path path, float x, float y, float width,
-			float height, float rotation, float scale) {
-
-		canvas.save();
-		canvas.translate(x + width / 2, y + height / 2);
-		canvas.rotate(rotation);
-		canvas.scale(scale, scale);
-		canvas.translate(-(width / 2), -(height / 2));
-		canvas.drawPath(path, paint);
-		canvas.restore();
-	}
-
-	public void paintCircle(float x, float y, float radius) {
-		canvas.drawCircle(x, y, radius, paint);
+			triangleModel.setDistance(90);
+			triangleModel.setSchaal(20);
+			triangleModel.setObj(id);
+			triangleModel.setColor(0xFF0000);
+			triangleModel.setxPos(x);
+			triangleModel.setyPos(y);
+			paint3DModel(triangleModel);
+		} catch (ModelLoadException e) {
+			e.printStackTrace();
+		}
 
 	}
+
+	// public void paintRoundedRect(float x, float y, float width, float height)
+	// {
+	// // rounded edges. patch by Ignacio Avellino
+	//
+	// RectF rect = new RectF(x, y, x + width, y + height);
+	// canvas.drawRoundRect(rect, 15F, 15F, paint);
+	// }
+
+	// public void paintBitmap(Bitmap bitmap, float left, float top) {
+	//
+	// canvas.drawBitmap(bitmap, left, top, paint);
+	// }
+
+	// public void paintPath(Path path, float x, float y, float width,
+	// float height, float rotation, float scale) {
+	//
+	// canvas.save();
+	// canvas.translate(x + width / 2, y + height / 2);
+	// canvas.rotate(rotation);
+	// canvas.scale(scale, scale);
+	// canvas.translate(-(width / 2), -(height / 2));
+	// canvas.drawPath(path, paint);
+	// canvas.restore();
+	// }
+
+	// public void paintCircle(float x, float y, float radius) {
+	// canvas.drawCircle(x, y, radius, paint);
+	//
+	// }
 
 	public void paintText(float x, float y, String text, boolean underline) {
 

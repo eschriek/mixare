@@ -71,7 +71,7 @@ public class DrawArrow extends DrawCommand{
 			float radius = maxHeight / 1.5f;
 			
 			Path arrow = buildArrow(maxHeight, radius);			
-			dw.paintPath(arrow,cMarker.x,cMarker.y,radius*2,radius*2,currentAngle+90,1);			
+			//dw.paintPath(arrow,cMarker.x,cMarker.y,radius*2,radius*2,currentAngle+90,1);			
 		}
 	}
 	

@@ -55,7 +55,7 @@ public class DataSource {
 	private DISPLAY display;
 	private boolean editable;
 	private BLUR blur;
-
+	
 	/**
 	 * Recreate's a previously existing DataSource
 	 * 

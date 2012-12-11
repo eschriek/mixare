@@ -21,7 +21,6 @@ package org.mixare.lib.marker;
 import java.net.URLDecoder;
 
 import org.mixare.lib.gui.Label;
-import org.mixare.lib.gui.TextObj;
 import org.mixare.lib.marker.draw.ClickHandler;
 import org.mixare.lib.marker.draw.DrawCommand;
 import org.mixare.lib.marker.draw.ParcelableProperty;
@@ -61,7 +60,6 @@ public abstract class PluginMarker{
 	private MixVector origin = new MixVector(0, 0, 0);
 	private MixVector upV = new MixVector(0, 1, 0);
 	public Label txtLab = new Label();
-	protected TextObj textBlock;
 	
 	public PluginMarker(int id, String title, double latitude, double longitude, double altitude, String link, int type, int colour) {
 		super();

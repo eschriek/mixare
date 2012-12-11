@@ -24,14 +24,12 @@ import java.text.DecimalFormat;
 
 import org.mixare.MixView;
 import org.mixare.data.convert.Elevation;
-import org.mixare.data.convert.OsmDataProcessor;
 import org.mixare.lib.MixContextInterface;
 import org.mixare.lib.MixStateInterface;
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.Label;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.gui.ScreenLine;
-import org.mixare.lib.gui.TextObj;
 import org.mixare.lib.marker.Marker;
 import org.mixare.lib.marker.draw.ParcelableProperty;
 import org.mixare.lib.marker.draw.PrimitiveProperty;
@@ -40,14 +38,13 @@ import org.mixare.lib.render.Camera;
 import org.mixare.lib.render.MixVector;
 
 import android.graphics.Bitmap;
+import android.graphics.PointF;
 import android.location.Location;
-import android.util.Log;
 
 /**
- * The class represents a marker and contains its information.
- * It draws the marker itself and the corresponding label.
- * All markers are specific markers like SocialMarkers or
- * NavigationMarkers, since this class is abstract
+ * The class represents a marker and contains its information. It draws the
+ * marker itself and the corresponding label. All markers are specific markers
+ * like SocialMarkers or NavigationMarkers, since this class is abstract
  */
 
 public abstract class LocalMarker implements Marker {
@@ -62,39 +59,37 @@ public abstract class LocalMarker implements Marker {
 	protected double bearing;
 	/* Marker's color */
 	private int color;
-	
+
 	private boolean active;
 
 	// Draw properties
 	/* Marker's Visibility to user */
 	protected boolean isVisible;
-//	private boolean isLookingAt;
-//	private boolean isNear;
-//	private float deltaCenter;
+	// private boolean isLookingAt;
+	// private boolean isNear;
+	// private float deltaCenter;
 	public MixVector cMarker = new MixVector();
-	
+
 	protected MixVector signMarker = new MixVector();
 
 	protected MixVector locationVector = new MixVector();
-	
+
 	private MixVector origin = new MixVector(0, 0, 0);
-	
+
 	private MixVector upV = new MixVector(0, 1, 0);
-	
+
 	private ScreenLine pPt = new ScreenLine();
 
 	public Label txtLab = new Label();
-	
-	protected TextObj textBlock;
 
-	public LocalMarker(final String id,  String title, final double latitude,
-			 double longitude, final double altitude,final String link,
+	public LocalMarker(final String id, String title, final double latitude,
+			double longitude, final double altitude, final String link,
 			int type, final int color) {
 		super();
 
 		this.active = false;
 		this.title = title;
-		this.mGeoLoc = (new PhysicalPlace(latitude,longitude,altitude));
+		this.mGeoLoc = (new PhysicalPlace(latitude, longitude, altitude));
 		if (link != null && link.length() > 0) {
 			try {
 				this.URL = ("webpage:" + URLDecoder.decode(link, "UTF-8"));
@@ -108,34 +103,34 @@ public abstract class LocalMarker implements Marker {
 		this.ID = id + "##" + type + "##" + title;
 	}
 
-
-	private void cCMarker(MixVector originalPoint, Camera viewCam, float addX, float addY) {
+	private void cCMarker(MixVector originalPoint, Camera viewCam, float addX,
+			float addY) {
 
 		// Temp properties
 		final MixVector tmpa = new MixVector(originalPoint);
 		final MixVector tmpc = new MixVector(upV);
-		tmpa.add(locationVector); //3 
-		tmpc.add(locationVector); //3
-		tmpa.sub(viewCam.lco); //4
-		tmpc.sub(viewCam.lco); //4
-		tmpa.prod(viewCam.transform); //5
-		tmpc.prod(viewCam.transform); //5
+		tmpa.add(locationVector); // 3
+		tmpc.add(locationVector); // 3
+		tmpa.sub(viewCam.lco); // 4
+		tmpc.sub(viewCam.lco); // 4
+		tmpa.prod(viewCam.transform); // 5
+		tmpc.prod(viewCam.transform); // 5
 
 		final MixVector tmpb = new MixVector();
-		viewCam.projectPoint(tmpa, tmpb, addX, addY); //6
-		cMarker.set(tmpb); //7
-		viewCam.projectPoint(tmpc, tmpb, addX, addY); //6
-		signMarker.set(tmpb); //7
+		viewCam.projectPoint(tmpa, tmpb, addX, addY); // 6
+		cMarker.set(tmpb); // 7
+		viewCam.projectPoint(tmpc, tmpb, addX, addY); // 6
+		signMarker.set(tmpb); // 7
 	}
 
 	/**
-	 * Checks if Marker is within Z angle of Camera.
-	 * It sets the visibility upon that.
+	 * Checks if Marker is within Z angle of Camera. It sets the visibility upon
+	 * that.
 	 */
 	private void calcV() {
 		isVisible = false;
-//		isLookingAt = false;
-//		deltaCenter = Float.MAX_VALUE;
+		// isLookingAt = false;
+		// deltaCenter = Float.MAX_VALUE;
 
 		if (cMarker.z < -1f) {
 			isVisible = true;
@@ -143,7 +138,8 @@ public abstract class LocalMarker implements Marker {
 	}
 
 	public void update(Location curGPSFix) {
-		// Checks if programm should get Altitude from http://api.geonames.org/astergdem
+		// Checks if programm should get Altitude from
+		// http://api.geonames.org/astergdem
 		String type = this.getClass().getName();
 		if (POIMarker.class.getName() == type) {
 			// Set direction Marker to user height
@@ -160,8 +156,9 @@ public abstract class LocalMarker implements Marker {
 								curGPSFix.getLongitude())));
 			}
 		}
-		
-		// compute the relative position vector from user position to POI location
+
+		// compute the relative position vector from user position to POI
+		// location
 		PhysicalPlace.convLocToVec(curGPSFix, getmGeoLoc(), locationVector);
 	}
 
@@ -170,19 +167,20 @@ public abstract class LocalMarker implements Marker {
 		calcV();
 	}
 
-//	private void calcPaint(Camera viewCam) {
-//		cCMarker(origin, viewCam, 0, 0);
-//	}
+	// private void calcPaint(Camera viewCam) {
+	// cCMarker(origin, viewCam, 0, 0);
+	// }
 
 	public boolean isClickValid(float x, float y) {
-		
-		//if the marker is not active (i.e. not shown in AR view) we don't have to check it for clicks
+
+		// if the marker is not active (i.e. not shown in AR view) we don't have
+		// to check it for clicks
 		if (!isActive() && !this.isVisible)
 			return false;
 
 		final float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y,
 				signMarker.x, signMarker.y);
-		//TODO adapt the following to the variable radius!
+		// TODO adapt the following to the variable radius!
 		pPt.x = x - signMarker.x;
 		pPt.y = y - signMarker.y;
 		pPt.rotate((float) Math.toRadians(-(currentAngle + 90)));
@@ -193,7 +191,7 @@ public abstract class LocalMarker implements Marker {
 		float objY = txtLab.getY() - txtLab.getHeight() / 2;
 		float objW = txtLab.getWidth();
 		float objH = txtLab.getHeight();
-		
+
 		if (pPt.x > objX && pPt.x < objX + objW && pPt.y > objY
 				&& pPt.y < objY + objH) {
 			return true;
@@ -212,76 +210,70 @@ public abstract class LocalMarker implements Marker {
 	public void drawCircle(PaintScreen dw) {
 
 		if (isVisible) {
-			//float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
+			// float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
 			float maxHeight = dw.getHeight();
-			dw.setStrokeWidth(maxHeight / 100f);
-			dw.setFill(false);
-			//dw.setColor(DataSource.getColor(type));
+			// dw.setStrokeWidth(maxHeight / 100f);
+			// dw.setFill(false);
+			// dw.setColor(DataSource.getColor(type));
 
-			//draw circle with radius depending on distance
-			//0.44 is approx. vertical fov in radians 
-			double angle = 2.0*Math.atan2(10,distance);
-			double radius = Math.max(Math.min(angle/0.44 * maxHeight, maxHeight),maxHeight/25f);
-			//double radius = angle/0.44d * (double)maxHeight;
+			// draw circle with radius depending on distance
+			// 0.44 is approx. vertical fov in radians
+			double angle = 2.0 * Math.atan2(10, distance);
+			double radius = Math.max(
+					Math.min(angle / 0.44 * maxHeight, maxHeight),
+					maxHeight / 25f);
+			// double radius = angle/0.44d * (double)maxHeight;
 
-			dw.paintCircle(cMarker.x, cMarker.y, (float)radius);
+			dw.paintCircle(ID + "poi", cMarker.x, cMarker.y, (float) radius);
 		}
 	}
 
 	public void drawTextBlock(PaintScreen dw) {
-		//TODO: grandezza cerchi e trasparenza
+		// TODO: grandezza cerchi e trasparenza
 		float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
 
-		//TODO: change textblock only when distance changes
-		String textStr="";
+		// TODO: change textblock only when distance changes
+		String textStr = "";
 
 		double d = distance;
 		DecimalFormat df = new DecimalFormat("@#");
-		if(d<1000.0) {
-			textStr = getTitle() + " ("+ df.format(d) + "m)";			
-		}
-		else {
-			d=d/1000.0;
+		if (d < 1000.0) {
+			textStr = getTitle() + " (" + df.format(d) + "m)";
+		} else {
+			d = d / 1000.0;
 			textStr = getTitle() + " (" + df.format(d) + "km)";
 		}
 
-		textBlock = new TextObj(textStr, Math.round(maxHeight / 2f) + 1,
-				250, dw, isUnderline());
-
 		if (isVisible) {
 
-			//dw.setColor(DataSource.getColor(type));
+			// dw.setColor(DataSource.getColor(type));
 
-			float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y, signMarker.x, signMarker.y);
-
-			txtLab.prepare(textBlock);
-
-			dw.setStrokeWidth(1f);
-			dw.setFill(true);
-			dw.paintObj(txtLab, signMarker.x - txtLab.getWidth()
-					/ 2, signMarker.y + maxHeight, currentAngle + 90, 1);
+			float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y,
+					signMarker.x, signMarker.y);
+			dw.paintText3D(textStr, new PointF(signMarker.x, signMarker.y
+					+ maxHeight), currentAngle + 90);
 		}
 
 	}
 
-	public boolean fClick(float x, float y, MixContextInterface ctx, MixStateInterface state) {
+	public boolean fClick(float x, float y, MixContextInterface ctx,
+			MixStateInterface state) {
 		boolean evtHandled = false;
 
 		if (isClickValid(x, y)) {
 			if (getURL() != null)
-				System.out.println("url : " + getURL());
 				evtHandled = state.handleEvent(ctx, getURL());
 		}
 		return evtHandled;
 	}
 
-	/* ****** Getters / setters **********/
-	
-	public String getTitle(){
+	/* ****** Getters / setters ********* */
+
+	public String getTitle() {
 		return title;
 	}
 
-	public String getURL(){
+	public String getURL() {
 		return URL;
 	}
 
@@ -300,7 +292,7 @@ public abstract class LocalMarker implements Marker {
 	public MixVector getLocationVector() {
 		return locationVector;
 	}
-	
+
 	public double getDistance() {
 		return distance;
 	}
@@ -308,11 +300,11 @@ public abstract class LocalMarker implements Marker {
 	public void setDistance(double distance) {
 		this.distance = distance;
 	}
-	
+
 	public double getBearing() {
 		return bearing;
 	}
-	
+
 	public void setBearing(double bearing) {
 		this.bearing = bearing;
 	}
@@ -339,10 +331,10 @@ public abstract class LocalMarker implements Marker {
 	}
 
 	@Override
-	public boolean equals (Object marker) {
+	public boolean equals(Object marker) {
 		return this.ID.equals(((Marker) marker).getID());
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return this.ID.hashCode();
@@ -357,20 +349,21 @@ public abstract class LocalMarker implements Marker {
 	}
 
 	abstract public int getMaxObjects();
-	
-	//abstract maybe!!
-	public void setImage(Bitmap image){
+
+	// abstract maybe!!
+	public void setImage(Bitmap image) {
 	}
-	//Abstract!!
-	public Bitmap getImage(){
+
+	// Abstract!!
+	public Bitmap getImage() {
 		return null;
 	}
 
-	//get Color for OpenStreetMap based on the URL number
+	// get Color for OpenStreetMap based on the URL number
 	public int getColor() {
 		return color;
 	}
-	
+
 	@Override
 	public void setTxtLab(Label txtLab) {
 		this.txtLab = txtLab;
@@ -380,23 +373,22 @@ public abstract class LocalMarker implements Marker {
 	public Label getTxtLab() {
 		return txtLab;
 	}
-	
-	public void setExtras(String name, PrimitiveProperty primitiveProperty){
-		//nothing to add
+
+	public void setExtras(String name, PrimitiveProperty primitiveProperty) {
+		// nothing to add
 	}
 
-	public void setExtras(String name, ParcelableProperty parcelableProperty){
-		//nothing to add
+	public void setExtras(String name, ParcelableProperty parcelableProperty) {
+		// nothing to add
 	}
-
 
 	/**
-	 * @param String the title to set
+	 * @param String
+	 *            the title to set
 	 */
 	protected void setTitle(String title) {
 		this.title = title;
 	}
-
 
 	/**
 	 * @return the underline
@@ -405,7 +397,6 @@ public abstract class LocalMarker implements Marker {
 		return underline;
 	}
 
-
 	/**
 	 * @param boolean the underline to set
 	 */
@@ -413,14 +404,13 @@ public abstract class LocalMarker implements Marker {
 		this.underline = underline;
 	}
 
-
 	/**
-	 * @param String the uRL to set
+	 * @param String
+	 *            the uRL to set
 	 */
 	protected void setURL(String uRL) {
 		URL = uRL;
 	}
-
 
 	/**
 	 * @return the mGeoLoc
@@ -429,9 +419,9 @@ public abstract class LocalMarker implements Marker {
 		return mGeoLoc;
 	}
 
-
 	/**
-	 * @param PhysicalPlace the mGeoLoc to set
+	 * @param PhysicalPlace
+	 *            the mGeoLoc to set
 	 */
 	protected void setmGeoLoc(PhysicalPlace mGeoLoc) {
 		this.mGeoLoc = mGeoLoc;

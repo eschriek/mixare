@@ -6,10 +6,20 @@ public class TextBox {
 
 	private String tekst;
 	private PointF loc;
-	
-	public TextBox(String tekst, PointF loc) {
+	private float rotation;
+
+	public TextBox(String tekst, PointF loc, float rotation) {
 		this.tekst = tekst;
 		this.loc = loc;
+		this.rotation = rotation;
+	}
+
+	public float getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(float rotation) {
+		this.rotation = rotation;
 	}
 
 	public String getTekst() {
@@ -27,6 +37,5 @@ public class TextBox {
 	public void setLoc(PointF loc) {
 		this.loc = loc;
 	}
-	
-	
+
 }

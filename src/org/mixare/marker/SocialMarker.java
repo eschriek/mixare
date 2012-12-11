@@ -69,10 +69,10 @@ public class SocialMarker extends LocalMarker {
 //				dw.paintBitmap(bitmap, cMarker.x - maxHeight/1.5f, cMarker.y - maxHeight/1.5f);
 //			}
 //			else {
-				dw.setStrokeWidth(maxHeight / 10f);
-				dw.setFill(false);
+//				dw.setStrokeWidth(maxHeight / 10f);
+//				dw.setFill(false);
 				//dw.setColor(DataSource.getColor(type));
-				dw.paintCircle(cMarker.x, cMarker.y, maxHeight / 1.5f);
+				dw.paintCircle(getID()+"poi",cMarker.x, cMarker.y, maxHeight / 1.5f);
 			//}
 		}
 	}

@@ -22,7 +22,6 @@ import java.text.DecimalFormat;
 
 import org.mixare.lib.gui.Label;
 import org.mixare.lib.gui.PaintScreen;
-import org.mixare.lib.gui.TextObj;
 import org.mixare.lib.render.MixVector;
 
 import android.graphics.Color;
@@ -44,7 +43,6 @@ public class DrawTextBox extends DrawCommand {
 	private static String PROPERTY_NAME_DISTANCE = "distance";
 	private static String PROPERTY_NAME_TITLE = "title";
 	private static String PROPERTY_NAME_UNDERLINE = "underline";
-	private static String PROPERTY_NAME_TEXTBLOCK = "textblock";
 	private static String PROPERTY_NAME_TEXTLAB = "textlab";
 	private static String PROPERTY_NAME_SIGNMARKER = "signmarker";
 
@@ -53,28 +51,23 @@ public class DrawTextBox extends DrawCommand {
 		Double distance = in.readDouble();
 		String title = in.readString();
 		Boolean underline = Boolean.valueOf(in.readString());
-		ParcelableProperty textObjHolder = in
-				.readParcelable(ParcelableProperty.class.getClassLoader());
 		ParcelableProperty textLabholder = in
 				.readParcelable(ParcelableProperty.class.getClassLoader());
 		ParcelableProperty signMarkerHolder = in
 				.readParcelable(ParcelableProperty.class.getClassLoader());
 		return new DrawTextBox(visible, distance, title, underline,
-				(TextObj) textObjHolder.getObject(),
 				(Label) textLabholder.getObject(),
 				(MixVector) signMarkerHolder.getObject());
 	}
 
 	public DrawTextBox(Boolean visible, Double distance, String title,
-			Boolean underline, TextObj textblock, Label textlab,
+			Boolean underline, Label textlab,
 			MixVector signMarker) {
 		super(CLASS_NAME);
 		setProperty(PROPERTY_NAME_VISIBLE, visible);
 		setProperty(PROPERTY_NAME_DISTANCE, distance);
 		setProperty(PROPERTY_NAME_TITLE, title);
 		setProperty(PROPERTY_NAME_UNDERLINE, underline);
-		setProperty(PROPERTY_NAME_TEXTBLOCK, new ParcelableProperty(
-				"org.mixare.lib.gui.TextObj", textblock));
 		setProperty(PROPERTY_NAME_TEXTLAB, new ParcelableProperty(
 				"org.mixare.lib.gui.Label", textlab));
 		setProperty(PROPERTY_NAME_SIGNMARKER, new ParcelableProperty(
@@ -86,7 +79,6 @@ public class DrawTextBox extends DrawCommand {
 
 		double distance = getDoubleProperty(PROPERTY_NAME_DISTANCE);
 		String title = getStringProperty(PROPERTY_NAME_TITLE);
-		TextObj textBlock = (TextObj) getParcelableProperty(PROPERTY_NAME_TEXTBLOCK);
 		Boolean underline = getBooleanProperty(PROPERTY_NAME_UNDERLINE);
 		Boolean visible = getBooleanProperty(PROPERTY_NAME_VISIBLE);
 		MixVector signMarker = getMixVectorProperty(PROPERTY_NAME_SIGNMARKER);
@@ -140,7 +132,7 @@ public class DrawTextBox extends DrawCommand {
 		 }
 		
 		dw.paintText3D(tekst, new PointF(
-				signMarker.x, signMarker.y));
+				signMarker.x, signMarker.y), 0);
 
 	}
 

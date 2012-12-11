@@ -210,14 +210,12 @@ public class Square {
 		gl.glBindTexture(GL10.GL_TEXTURE_2D, textures[0]);
 
 		if (GLParameters.DRAWTEX) {
-			crop = new int[] { 0, GLParameters.HEIGHT, GLParameters.WIDTH,
-					-GLParameters.HEIGHT };
+			crop = new int[] { 0, (int) height, (int) width, (int) -height };
 
 			((GL11) gl).glTexParameteriv(GL10.GL_TEXTURE_2D,
 					GL11Ext.GL_TEXTURE_CROP_RECT_OES, crop, 0);
 
-			((GL11Ext) gl).glDrawTexfOES(x, y, 0, GLParameters.WIDTH,
-					GLParameters.HEIGHT);
+			((GL11Ext) gl).glDrawTexfOES(x, y, 0, width, height);
 		} else {
 
 			gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);

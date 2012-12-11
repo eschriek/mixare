@@ -33,7 +33,7 @@ public class Mesh {
 	public void draw(GL10 gl) {
 		gl.glFrontFace(GL10.GL_CCW);
 
-		gl.glEnable(GL10.GL_CULL_FACE);
+		//gl.glEnable(GL10.GL_CULL_FACE);
 
 		// gl.glEnable(GL10.GL_BLEND);
 		// gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_DST_ALPHA);
