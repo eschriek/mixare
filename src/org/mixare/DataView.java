@@ -435,13 +435,15 @@ public class DataView implements DataViewInterface {
 			// matches triggers the event.
 			// TODO handle collection of markers. (what if user wants the one at
 			// the back)
+//			for(Marker pm : dataHandler.getMarkerList()){
+//				evtHandled = pm.fClick(evt.x, evt.y, mixContext, state);
+			}
 			for (int i = 0; i < dataHandler.getMarkerCount() && !evtHandled; i++) {
 				Marker pm = dataHandler.getMarker(i);
 
 				evtHandled = pm.fClick(evt.x, evt.y, mixContext, state);
-				Log.e("evt", evtHandled + "");
 			}
-		}
+		
 		return evtHandled;
 	}
 

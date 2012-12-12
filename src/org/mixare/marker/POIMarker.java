@@ -19,8 +19,11 @@
 
 package org.mixare.marker;
 
+import java.text.DecimalFormat;
+
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.PaintScreen;
+import org.mixare.lib.gui.TextObj;
 
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -100,20 +103,18 @@ public class POIMarker extends LocalMarker {
 
 		if (!isDirectionMarker) {
 			double d = distance;
-			// DecimalFormat df = new DecimalFormat("@#");
+			DecimalFormat df = new DecimalFormat("@#");
 			textStr = getTitle() + "(" + MixUtils.formatDist((float) d) + ")";
-			// if (d < 1000.0) {
-			// textStr = getTitle() + " (" + df.format(d) + "m)";
-			// } else {
-			// d = d / 1000.0;
-			// textStr = getTitle() + " (" + df.format(d) + "km)";
-			// }
+			if (d < 1000.0) {
+				textStr = getTitle() + " (" + df.format(d) + "m)";
+			} else {
+				d = d / 1000.0;
+				textStr = getTitle() + " (" + df.format(d) + "km)";
+			}
 		} else {
 			textStr = getTitle();
 		}
-		// textBlock = new TextObj(textStr, Math.round(maxHeight / 2f) + 1, 250,
-		// dw, isUnderline());
-		//
+
 		// if (isVisible) {
 		// // based on the distance set the colour
 		// if (distance < 100.0) {
@@ -127,7 +128,6 @@ public class POIMarker extends LocalMarker {
 		//
 		float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y,
 				signMarker.x, signMarker.y);
-		// txtLab.prepare(textBlock);
 		// dw.setStrokeWidth(1f);
 		// dw.setFill(true);
 		if (isVisible) {

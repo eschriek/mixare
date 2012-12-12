@@ -10,6 +10,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLException;
 import android.opengl.GLUtils;
+import android.util.Log;
 
 /**
  * Utils
@@ -63,11 +64,13 @@ public class Util {
 	 * @param bitmap
 	 *            The bitmap that should be converted
 	 * @return The resulting texture
-	 * @throws a
-	 *             GLException if something went wrong
+	 * @throws Object3DException Throwed if something essential went wrong.
+	 
 	 */
-	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap)
-			throws GLException {
+	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap, String src)
+			throws Object3DException {
+
+		Log.w("Mixare", "Load Texture called! From : " + src);
 
 		int[] textures = new int[1];
 		gl.glDeleteTextures(1, textures, 0);
@@ -88,15 +91,17 @@ public class Util {
 
 		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
 
-//		GLUtils.texSubImage2D(GL10.GL_TEXTURE_2D, 0, 50, 50, bitmap,
-//				GL10.GL_RGBA, GL10.GL_UNSIGNED_SHORT_4_4_4_4);
+		// GLUtils.texSubImage2D(GL10.GL_TEXTURE_2D, 0, 50, 50, bitmap,
+		// GL10.GL_RGBA, GL10.GL_UNSIGNED_SHORT_4_4_4_4);
 
 		int error = gl.glGetError();
 		if (error != GL10.GL_NO_ERROR) {
-			throw new GLException(error, "Foutje in texImage2D");
+			throw new Object3DException("GL error : " + error
+					+ " in LoadGLTexture");
 		}
 
 		// Clean up
+		// gl.glFlush();
 		// bitmap.recycle();
 
 		return textures;

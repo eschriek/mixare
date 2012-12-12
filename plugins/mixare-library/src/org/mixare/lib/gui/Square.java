@@ -53,6 +53,7 @@ public class Square {
 	private String identifier;
 	private float width, height;
 	private Bitmap img;
+	private boolean isLoaded;
 
 	public Square(String identifier, Bitmap img, Paint p, float x, float y,
 			float width, float height) {
@@ -193,8 +194,14 @@ public class Square {
 	 *            {@link Util#loadGLTexture(GL10, android.graphics.Bitmap)}
 	 */
 	public void draw(GL10 gl, int[] texture) {
+
 		this.textures = texture;
+
 		this.draw(gl);
+	}
+
+	public boolean isLoaded() {
+		return isLoaded;
 	}
 
 	/**

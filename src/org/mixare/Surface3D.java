@@ -14,6 +14,7 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -45,6 +46,7 @@ public class Surface3D extends GLSurfaceView {
 		MixView.setdWindow(screen);
 		
 		//setDebugFlags(DEBUG_LOG_GL_CALLS);
+		setPreserveEGLContextOnPause(true);
 		setEGLConfigChooser(8, 8, 8, 8, 16, 0);
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 		
@@ -52,5 +54,17 @@ public class Surface3D extends GLSurfaceView {
 		//setRenderMode(RENDERMODE_WHEN_DIRTY);
 		//screen.setCanvas(c);		
 	}
+
+	@Override
+	public void onPause() {
+		Log.i("Mixare", "3D Pauze");
+	}
+
+	@Override
+	public void onResume() {
+		Log.i("Mixare", "3D Resume");
+	}
+	
+	
 	
 }

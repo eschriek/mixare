@@ -27,46 +27,60 @@ import android.os.Parcel;
 import android.util.Log;
 
 /**
- * A draw command that can be send by a plugin marker to draw an image on the client.
- * This class extends the DrawCommand, that stores the properties, so that it can be
- * transfered to the client.
+ * A draw command that can be send by a plugin marker to draw an image on the
+ * client. This class extends the DrawCommand, that stores the properties, so
+ * that it can be transfered to the client.
+ * 
  * @author A. Egal
  */
-public class DrawImage extends DrawCommand{
-	
+public class DrawImage extends DrawCommand {
+
 	private static String CLASS_NAME = DrawImage.class.getName();
-	
+
 	private static String PROPERTY_NAME_VISIBLE = "visible";
 	private static String PROPERTY_NAME_SIGNMARKER = "signMarker";
 	private static String PROPERTY_NAME_IMAGE = "image";
-	
-	public static DrawImage init(Parcel in){
+	private static String PROPERTY_NAME_ID = "id";
+
+	public static DrawImage init(Parcel in) {
+		String id = String.valueOf(in.readString());
 		Boolean visible = Boolean.valueOf(in.readString());
-		ParcelableProperty signMarkerHolder = in.readParcelable(ParcelableProperty.class.getClassLoader());
-		ParcelableProperty bitmapHolder = in.readParcelable(ParcelableProperty.class.getClassLoader());
-		return new DrawImage(visible, (MixVector)signMarkerHolder.getObject(), (Bitmap)bitmapHolder.getObject());
+		ParcelableProperty signMarkerHolder = in
+				.readParcelable(ParcelableProperty.class.getClassLoader());
+		ParcelableProperty bitmapHolder = in
+				.readParcelable(ParcelableProperty.class.getClassLoader());
+		return new DrawImage(id, visible,
+				(MixVector) signMarkerHolder.getObject(),
+				(Bitmap) bitmapHolder.getObject());
 	}
-	
-	public DrawImage(boolean visible,MixVector signMarker, Bitmap image) {
+
+	public DrawImage(String id, boolean visible, MixVector signMarker,
+			Bitmap image) {
 		super(CLASS_NAME);
+		setProperty(PROPERTY_NAME_ID, id);
 		setProperty(PROPERTY_NAME_VISIBLE, visible);
-		setProperty(PROPERTY_NAME_SIGNMARKER, new ParcelableProperty("org.mixare.lib.render.MixVector", signMarker));
-		setProperty(PROPERTY_NAME_IMAGE,  new ParcelableProperty("android.graphics.Bitmap",image));
+		setProperty(PROPERTY_NAME_SIGNMARKER, new ParcelableProperty(
+				"org.mixare.lib.render.MixVector", signMarker));
+		setProperty(PROPERTY_NAME_IMAGE, new ParcelableProperty(
+				"android.graphics.Bitmap", image));
 	}
-	
+
 	@Override
-	public void draw(PaintScreen dw){
+	public void draw(PaintScreen dw) {
 		if (getBooleanProperty(PROPERTY_NAME_VISIBLE)) {
+			String id = getStringProperty(PROPERTY_NAME_ID);
 			MixVector signMarker = getMixVectorProperty(PROPERTY_NAME_SIGNMARKER);
 			Bitmap bitmap = getBitmapProperty(PROPERTY_NAME_IMAGE);
-			
+
 			dw.setColor(Color.argb(155, 255, 255, 255));
-			if(bitmap == null){
+			if (bitmap == null) {
 				Log.e("mixare-lib", "bitmap = null");
 				return;
 			}
-			dw.paintBitmapGL(bitmap, signMarker.x - (bitmap.getWidth()/2), signMarker.y - (bitmap.getHeight() / 2));
+			dw.paintBitmapGL(id, bitmap,
+					signMarker.x - (bitmap.getWidth() / 2), signMarker.y
+							- (bitmap.getHeight() / 2));
 		}
-	}	
-	
+	}
+
 }

@@ -5,6 +5,11 @@ import org.mixare.lib.model3d.Mesh;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+/**
+ * This class is a container for everything concerning a 3D model
+ * @author Edwin Schriek, 12 dec 2012
+ *
+ */
 public class Model3D implements Parcelable {
 
 	private String obj;

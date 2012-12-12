@@ -126,7 +126,7 @@ public class DataSource {
 				float geoNamesRadius = radius > 20 ? 20 : radius;
 				ret += "?lat=" + lat + "&lng=" + lon + "&radius="
 						+ geoNamesRadius + "&maxRows=50" + "&lang=" + locale
-						+ "&username=mixare";
+						+ "&username=edwin";
 				break;
 
 			case TWITTER:

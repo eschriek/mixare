@@ -45,6 +45,7 @@ import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PointF;
 import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
@@ -120,8 +121,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		// 4444 Because we need the alpha, 8888 would improve quality at the
 		// cost of speed
-		canvasMap = Bitmap.createBitmap(110, 120, Config.ARGB_4444);
-		window = new Square(paint, 0f, (mHeight - 0f), 110, 120);
+		canvasMap = Bitmap.createBitmap(110, 110, Config.ARGB_4444);
+		window = new Square(paint, 0f, 0f, 110, 110);
 
 		text3d = new HashSet<TextBox>();
 		images = new HashSet<Square>();
@@ -223,11 +224,17 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * 
 	 * @param gl
 	 *            GL object supplied by onDrawFrame
+	 * @throws Object3DException
+	 *             Throwed if anything essential went wrong.
 	 */
 	@SuppressLint("NewApi")
-	public void draw2D(GL10 gl) {
+	public void draw2D(GL10 gl) throws Object3DException {
 		if (window != null && canvasMap != null) {
 			size = (canvasMap.getHeight() * canvasMap.getRowBytes()) / 1024;
+			
+			for (Square s : images) { //Size in kb of all bitmaps
+				size += ((s.getImg().getHeight() * s.getImg().getRowBytes()) / 1024);
+			}
 
 			if (!data.isInited()) {
 				data.init(mWidth, mHeight);
@@ -240,18 +247,17 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				endKM = "80km";
 				startKM = "0km";
 
-				// paintText(canvas.getWidth() / 100 * 4,
-				// canvas.getHeight() / 100 * 85, startKM, false);
-				canvas.drawText(endKM, canvas.getWidth() / 100 * 99 + 25,
-						canvas.getHeight() / 100 * 85, zoomPaint);
+				paintText3D(startKM, new PointF(mWidth, mHeight / 100 * 85), 0);
+				paintText3D(endKM, new PointF(mWidth / 100 * 99 + 25,
+						mHeight / 100 * 85), 0);
 
-				int height = canvas.getHeight() / 100 * 85;
+				int height = mHeight / 100 * 85;
 				int zoomProgress = app.getZoomProgress();
 				if (zoomProgress > 92 || zoomProgress < 6) {
-					height = canvas.getHeight() / 100 * 80;
+					height = mHeight / 100 * 80;
 				}
-				canvas.drawText(app.getZoomLevel(), (canvas.getWidth()) / 100
-						* zoomProgress + 20, height, zoomPaint);
+				paintText3D(app.getZoomLevel(), new PointF((mWidth / 100
+						* zoomProgress + 20), height), 0);
 			}
 
 			data.draw(this);
@@ -262,37 +268,88 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					- (mHeight - 100));
 			textInfo.end();
 
-			try {
-				gl.glPushMatrix();
-				gl.glTranslatef(0, mHeight, 0);
-				window.draw(gl, Util.loadGLTexture(gl, canvasMap));
-				gl.glPopMatrix();
-				for (Square s : images) {
-					if (s.getTextures()[0] == 0 && s.getImg() != null) {
-						s.setTextures(Util.loadGLTexture(gl, s.getImg()));
-					}
-					s.draw(gl);
+			// gl.glColor4f(1f, 1f, 1f, 1f);
+			// window.draw(gl, Util.loadGLTexture(gl, canvasMap));
+			// for (Square s : images) {
+			// // if (!s.isLoaded() && s.getImg() != null) {
+			// // s.setTextures(Util.loadGLTexture(gl, s.getImg(),
+			// // "Bitmap"));
+			// // }
+			// gl.glColor4f(1f, 1f, 1f, 0.6f); // Transparant bitmaps
+			// if (!s.isLoaded() && s.getImg() != null) {
+			// s.draw(gl, Util.loadGLTexture(gl, s.getImg()));
+			// } else {
+			// s.draw(gl);
+			// }
+			//
+			// }
 
+			window.draw(gl, Util.loadGLTexture(gl, canvasMap, "Radar"));
+
+			for (Square s : images) {
+				if (s.getTextures()[0] == 0 && s.getImg() != null) {
+					s.setTextures(Util.loadGLTexture(gl, s.getImg(), "Bitmap"));
 				}
-			} catch (GLException e) {
-				// TODO: Throw this to a toast?
+				gl.glColor4f(1f, 1f, 1f, 0.6f);
+				s.draw(gl);
+
 			}
 
 			text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering (Set
 												// Color WHITE), for alpha
-
 			for (TextBox t : text3d) {
 				// System.out.println(t.getRotation());
 				gl.glPushMatrix();
 				// gl.glRotatef(t.getRotation(), 0, 1, 0);
-				text.draw(t.getTekst(),
-						t.getLoc().x - (getTextWidth(t.getTekst()) / 2),
-						(mHeight - t.getLoc().y));
+				String[] split = splitStringEvery(t.getTekst(), 10);
+
+				int blockH = (int) (split.length * text.getHeight());
+				int blockW = (int) getTextWidth(split[0]);
+
+				int tick = -1;
+				for (String s : split) {
+					text.draw(
+							s,
+							(t.getLoc().x - getTextWidth(s)),
+							((mHeight - t.getLoc().y))
+									- (tick * text.getHeight() - 10));
+					tick++;
+				}
+				// text.draw(parsedStr,
+				// t.getLoc().x - (getTextWidth(t.getTekst()) / 2),
+				// (mHeight - t.getLoc().y));
 				gl.glPopMatrix();
 			}
 
 			text.end();
 		}
+	}
+
+	/**
+	 * This method is the fastest way to split a string every n chars. See
+	 * {@link http
+	 * ://stackoverflow.com/questions/12295711/split-a-string-at-every
+	 * -nth-position}
+	 * 
+	 * @param s
+	 *            The String that should be split
+	 * @param interval
+	 *            How much chars per piece
+	 * @return Returns array of strings
+	 */
+	public String[] splitStringEvery(String s, int interval) {
+		int arrayLength = (int) Math.ceil(((s.length() / (double) interval)));
+		String[] result = new String[arrayLength];
+
+		int j = 0;
+		int lastIndex = result.length - 1;
+		for (int i = 0; i < lastIndex; i++) {
+			result[i] = s.substring(j, j + interval);
+			j += interval;
+		} // Add the last bit
+		result[lastIndex] = s.substring(j);
+
+		return result;
 	}
 
 	/**
@@ -426,40 +483,43 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	/**
-	 * TODO improve this method cause it's horrible. Images are to big, the
-	 * performance gets blown to pieces and the code is just plain stupid. The
-	 * only postive thing about this, is that it is faster then canvas
+	 * Adds the specified bitmap to a buffer which will be drawed in the next
+	 * loop.
 	 * 
+	 * @param id
+	 *            Unique id generated by Mixare, this is used to update bitmaps
 	 * @param img
-	 *            The bitmap
+	 *            The bitmap which should be drawed.
 	 * @param x
 	 *            X coordinate
 	 * @param y
 	 *            Y coordinate
 	 */
-	public void paintBitmapGL(Bitmap img, float x, float y) {
-		// boolean create = false;
-		//
-		// if (images.isEmpty()) {
-		// create = true;
-		// }
-		//
-		// Square tmp = new Square("bitmap" + img.getHeight(), img, paint, x,
-		// (mHeight - y), img.getWidth(), img.getHeight());
-		// for (Square s : images) {
-		// if (s.equals(tmp)) {
-		// s.update(tmp);
-		// create = false;
-		// break;
-		// } else {
-		// create = true;
-		// }
-		// }
-		// if (create) {
-		// images.add(tmp);
-		// }
-		images.add(new Square("" + new Random(0).nextInt(), img, paint, x, y,
-				img.getWidth(), img.getHeight()));
+	public void paintBitmapGL(String id, Bitmap img, float x, float y) {
+		boolean create = false;
+
+		if (images.isEmpty()) {
+			create = true;
+		}
+
+		Square tmp = new Square(id, img, paint, x, (mHeight - y),
+				img.getWidth(), img.getHeight());
+		for (Square s : images) {
+			if (s.equals(tmp)) {
+				s.update(tmp); // Updating will stop bitmaps from flickering and
+								// increases performance
+				create = false;
+				break;
+			} else {
+				create = true;
+			}
+		}
+		if (create) {
+			images.add(tmp);
+		}
+
+		// images.add(new Square("" + new Random(0).nextInt(), img, paint, x, y,
+		// img.getWidth(), img.getHeight()));
 	}
 
 	/**
@@ -515,7 +575,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				if (model.getObj().endsWith("poi")) {
 					tmp = poi;
 				} else if (model.getObj().endsWith("triangle")) {
-					tmp = triangle;
+					tmp = triangle; // TODO: Make a new triangle model in the
+									// origin
 				} else {
 					InputStream input = new FileInputStream(model.getObj());
 					if (input != null) {
@@ -546,27 +607,34 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	}
 
+	private void clearBuffers() {
+		canvasMap.eraseColor(0);
+		models.clear();
+		text3d.clear();
+	}
+
 	@SuppressLint("NewApi")
 	public void onDrawFrame(GL10 gl) {
 		long time1 = System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-		canvasMap.eraseColor(0);
-		models.clear();
-		text3d.clear();
-		images.clear();
+		try {
+			clearBuffers();
 
-		ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
-		draw2D(gl);
+			ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
+			draw2D(gl);
 
-		gl.glPushMatrix();
+			gl.glPushMatrix();
 
-		if (GLParameters.ENABLE3D) {
-			ready3D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
-			draw3D(gl);
+			if (GLParameters.ENABLE3D) {
+				ready3D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
+				draw3D(gl);
+			}
+
+			gl.glPopMatrix();
+			dt = System.currentTimeMillis() - time1;
+		} catch (Object3DException e) {
+			// TODO: throw this to a toast and close app?
 		}
-
-		gl.glPopMatrix();
-		dt = System.currentTimeMillis() - time1;
 
 	}
 
@@ -574,7 +642,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * Screen rotation, will not happen in Mixare
 	 */
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
-		Log.i(TAG, "onSurfaceChanged " + width + " " + height);
+		Log.i("Mixare", "onSurfaceChanged SOMETHING HAPPEND!!!");
+
+		clearBuffers();
 
 		mWidth = width;
 		mHeight = height;
@@ -717,17 +787,26 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	// canvas.drawBitmap(bitmap, left, top, paint);
 	// }
 
-	// public void paintPath(Path path, float x, float y, float width,
-	// float height, float rotation, float scale) {
-	//
-	// canvas.save();
-	// canvas.translate(x + width / 2, y + height / 2);
-	// canvas.rotate(rotation);
-	// canvas.scale(scale, scale);
-	// canvas.translate(-(width / 2), -(height / 2));
-	// canvas.drawPath(path, paint);
-	// canvas.restore();
-	// }
+	public void paintPath(Path path, float x, float y, float width,
+			float height, float rotation, float scale) {
+		// TODO: Fix this
+
+		//
+		// Bitmap tmp = Bitmap.createBitmap((int) width, (int) height,
+		// Config.ARGB_4444);
+		// Canvas c = new Canvas(tmp);
+		//
+		// // c.save();
+		// // c.translate(x + width / 2, y + height / 2);
+		// // c.rotate(rotation);
+		// // c.scale(scale, scale);
+		// // c.translate(-(width / 2), -(height / 2));
+		// c.drawPath(path, paint);
+		// // c.restore();
+		//
+		// paintBitmapGL("path" + tmp.getHeight() * tmp.getRowBytes(), tmp, x,
+		// y);
+	}
 
 	// public void paintCircle(float x, float y, float radius) {
 	// canvas.drawCircle(x, y, radius, paint);

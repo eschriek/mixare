@@ -30,6 +30,7 @@ import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.Label;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.gui.ScreenLine;
+import org.mixare.lib.gui.TextObj;
 import org.mixare.lib.marker.Marker;
 import org.mixare.lib.marker.draw.ParcelableProperty;
 import org.mixare.lib.marker.draw.PrimitiveProperty;
@@ -81,7 +82,7 @@ public abstract class LocalMarker implements Marker {
 	private ScreenLine pPt = new ScreenLine();
 
 	public Label txtLab = new Label();
-
+	
 	public LocalMarker(final String id, String title, final double latitude,
 			double longitude, final double altitude, final String link,
 			int type, final int color) {
@@ -210,8 +211,8 @@ public abstract class LocalMarker implements Marker {
 	public void drawCircle(PaintScreen dw) {
 
 		if (isVisible) {
-			// float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
-			float maxHeight = dw.getHeight();
+			float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
+			//float maxHeight = dw.getHeight();
 			// dw.setStrokeWidth(maxHeight / 100f);
 			// dw.setFill(false);
 			// dw.setColor(DataSource.getColor(type));
