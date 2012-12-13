@@ -64,8 +64,6 @@ interface IMarkerService {
 
 	int getMaxObjects(String markerName);
 
-	ClickHandler fClick(String markerName);
-
 	boolean isVisible(String markerName);
 
 	void setExtrasParc(String markerName, String name, in ParcelableProperty parcelableProperty);

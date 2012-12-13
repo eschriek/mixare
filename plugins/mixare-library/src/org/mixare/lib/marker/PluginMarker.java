@@ -21,7 +21,6 @@ package org.mixare.lib.marker;
 import java.net.URLDecoder;
 
 import org.mixare.lib.gui.Label;
-import org.mixare.lib.marker.draw.ClickHandler;
 import org.mixare.lib.marker.draw.DrawCommand;
 import org.mixare.lib.marker.draw.ParcelableProperty;
 import org.mixare.lib.marker.draw.PrimitiveProperty;
@@ -135,10 +134,6 @@ public abstract class PluginMarker{
 
 	public boolean isVisible() {
 		return isVisible;
-	}
-
-	public ClickHandler fClick() {
-		return new ClickHandler(URL, active, txtLab, signMarker, cMarker);
 	}
 
 	public abstract int getMaxObjects();

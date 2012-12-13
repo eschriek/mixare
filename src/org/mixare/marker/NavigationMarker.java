@@ -22,7 +22,6 @@ package org.mixare.marker;
 import org.mixare.MixView;
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.PaintScreen;
-import org.mixare.marker.LocalMarker;
 
 import android.graphics.Path;
 import android.location.Location;

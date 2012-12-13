@@ -2,31 +2,19 @@ package org.mixare.data;
 
 import org.mixare.R;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.ActionProvider;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.view.SubMenu;
-import com.actionbarsherlock.view.MenuItem.OnActionExpandListener;
-import com.actionbarsherlock.view.MenuItem.OnMenuItemClickListener;
-
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 /**
  * Activity to add new DataSources

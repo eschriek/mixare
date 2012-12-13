@@ -61,8 +61,7 @@ public class DrawTextBox extends DrawCommand {
 	}
 
 	public DrawTextBox(Boolean visible, Double distance, String title,
-			Boolean underline, Label textlab,
-			MixVector signMarker) {
+			Boolean underline, Label textlab, MixVector signMarker) {
 		super(CLASS_NAME);
 		setProperty(PROPERTY_NAME_VISIBLE, visible);
 		setProperty(PROPERTY_NAME_DISTANCE, distance);
@@ -120,20 +119,17 @@ public class DrawTextBox extends DrawCommand {
 		// dw.paintObj(txtlab, signMarker.x
 		// - txtlab.getWidth() / 2, signMarker.y
 		// + maxHeight, 0, 1);
-		
-		
+
 		String tekst = null;
 		DecimalFormat df = new DecimalFormat("@#");
-		 if (distance < 1000.0) {
-		 tekst = title + " (" + df.format(distance) + "m)";
-		 } else {
-		 distance = distance / 1000.0;
-		 tekst = title + " (" + df.format(distance) + "km)";
-		 }
-		
-		dw.paintText3D(tekst, new PointF(
-				signMarker.x, signMarker.y), 0);
+		if (distance < 1000.0) {
+			tekst = title + " (" + df.format(distance) + "m)";
+		} else {
+			distance = distance / 1000.0;
+			tekst = title + " (" + df.format(distance) + "km)";
+		}
+
+		dw.paintText3D(tekst, null, new PointF(signMarker.x, signMarker.y), 0);
 
 	}
-
 }

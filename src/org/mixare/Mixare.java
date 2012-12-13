@@ -1,7 +1,8 @@
 package org.mixare;
 
-import org.acra.annotation.*;
-import org.acra.*;
+import org.acra.ACRA;
+import org.acra.annotation.ReportsCrashes;
+
 import android.app.Application;
 
 /**
@@ -11,7 +12,7 @@ import android.app.Application;
  * 
  * @author KlemensE
  */
-@ReportsCrashes(formKey = "dFdFNXpjUExsNi1rRTJNc095LTh6RGc6MQ")
+@ReportsCrashes(formKey = "dHVhRHlFU3JxbHhjUG80RTNNS19KVnc6MQ")
 public class Mixare extends Application {
 	@Override
 	public void onCreate() {

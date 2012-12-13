@@ -77,8 +77,6 @@ public interface Marker extends Comparable<Marker>{
 
 	Label getTxtLab();
 
-	public boolean fClick(float x, float y, MixContextInterface ctx, MixStateInterface state);
-
 	int getMaxObjects();
 	
 	void setExtras(String name, ParcelableProperty parcelableProperty);

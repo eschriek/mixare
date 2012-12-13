@@ -19,19 +19,15 @@
 
 package org.mixare.data;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
 
 import org.mixare.MixContext;
-import org.mixare.MixView;
 import org.mixare.lib.marker.Marker;
 
 import android.location.Location;
-import android.util.Log;
 
 /**
  * DataHandler is the model which provides the Marker Objects with its data.

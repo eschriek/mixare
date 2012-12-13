@@ -22,12 +22,12 @@ import org.mixare.MixContext;
 import org.mixare.map.GoogleMap;
 import org.mixare.mgr.downloader.DownloadManager;
 
-import com.google.android.maps.GeoPoint;
-
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.Log;
+
+import com.google.android.maps.GeoPoint;
 
 class LocationObserver implements LocationListener {
 	

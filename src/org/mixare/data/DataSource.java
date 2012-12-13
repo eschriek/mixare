@@ -27,16 +27,7 @@ import org.mixare.data.convert.DataConvertor;
 import org.mixare.data.convert.PanoramioDataProcessor;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.graphics.Color;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 /**
  * The DataSource class is able to create the URL where the information about a

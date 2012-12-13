@@ -25,23 +25,16 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 
 import org.mixare.R.drawable;
 import org.mixare.data.DataSourceList;
 import org.mixare.data.DataSourceStorage;
 import org.mixare.lib.gui.MixViewInterface;
 import org.mixare.lib.gui.PaintScreen;
-import org.mixare.lib.render.Matrix;
 import org.mixare.lib.reality.Filter;
+import org.mixare.lib.render.Matrix;
 import org.mixare.map.MixMap;
 import org.mixare.mgr.HttpTools;
-import org.mixare.plugin.PluginLoader;
-import org.mixare.plugin.PluginType;
-
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
 
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -79,7 +72,10 @@ import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 /**
  * This class is the main application which uses the other classes for different
@@ -583,7 +579,8 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	 */
 	private void maintainAugmentR() {
 		if (augScreen3D == null) {
-			augScreen3D = new Surface3D(this, getDataView());
+			augScreen3D = new Surface3D(this, getDataView(), getDataView()
+					.getMixState(), getDataView().getContext());
 		}
 		addContentView(augScreen3D, new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT));
@@ -597,7 +594,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 		if (zoombarLayout == null) {
 			zoombarLayout = createZoomBar(settings);
 		}
-		
+
 	}
 
 	/**
@@ -1081,30 +1078,6 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 					getMixViewData().getSmoothR());
 		} catch (Exception ex) {
 			ex.printStackTrace();
-		}
-	}
-
-	@Override
-	public boolean onTouchEvent(MotionEvent me) {
-		if (getMixViewData().getMyZoomBar().getVisibility() == View.VISIBLE) {
-			getMixViewData().getMyZoomBar().setVisibility(View.INVISIBLE);
-		}
-
-		try {
-			killOnError();
-
-			float xPress = me.getX();
-			float yPress = me.getY();
-
-			if (me.getAction() == MotionEvent.ACTION_UP) {
-				getDataView().clickEvent(xPress, yPress);
-			}// TODO add gesture events (low)
-
-			return true;
-		} catch (Exception ex) {
-			// doError(ex);
-			ex.printStackTrace();
-			return super.onTouchEvent(me);
 		}
 	}
 

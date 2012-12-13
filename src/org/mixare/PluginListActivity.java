@@ -21,30 +21,27 @@ package org.mixare;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.mixare.R;
-import org.mixare.sectionedlist.Item;
-import org.mixare.sectionedlist.SectionItem;
-import org.mixare.lib.MixUtils;
 import org.mixare.plugin.Plugin;
 import org.mixare.plugin.PluginStatus;
-
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import org.mixare.sectionedlist.Item;
+import org.mixare.sectionedlist.SectionItem;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ListView;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 public class PluginListActivity extends SherlockActivity {
 	private SectionAdapter sectionAdapter;

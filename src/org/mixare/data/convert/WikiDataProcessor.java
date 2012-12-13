@@ -24,14 +24,12 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mixare.MixContext;
 import org.mixare.MixView;
-import org.mixare.marker.POIMarker;
 import org.mixare.data.DataHandler;
 import org.mixare.data.DataSource;
 import org.mixare.lib.HtmlUnescape;
-import org.mixare.data.convert.DataProcessor;
 import org.mixare.lib.marker.Marker;
+import org.mixare.marker.POIMarker;
 
 import android.util.Log;
 

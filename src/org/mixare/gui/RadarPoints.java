@@ -19,10 +19,10 @@
 package org.mixare.gui;
 
 import org.mixare.DataView;
-import org.mixare.lib.marker.Marker;
+import org.mixare.data.DataHandler;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.gui.ScreenObj;
-import org.mixare.data.DataHandler;
+import org.mixare.lib.marker.Marker;
 
 import android.graphics.Color;
 

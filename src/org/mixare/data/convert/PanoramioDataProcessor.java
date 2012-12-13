@@ -26,18 +26,16 @@ package org.mixare.data.convert;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.mixare.marker.ImageMarker;
-import org.mixare.marker.LocalMarker;
-import org.mixare.MixContext;
 import org.mixare.data.DataHandler;
 import org.mixare.data.DataSource;
 import org.mixare.lib.HtmlUnescape;
 import org.mixare.lib.marker.Marker;
+import org.mixare.marker.ImageMarker;
+
 import android.util.Log;
 
 /**

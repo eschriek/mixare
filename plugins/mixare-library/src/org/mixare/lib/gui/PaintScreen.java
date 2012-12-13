@@ -21,12 +21,14 @@ package org.mixare.lib.gui;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -72,6 +74,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private Paint paint = new Paint();
 	private Square window;
 	private long dt;
+	private long startTime;
+	private long endTime;
 	private String info;
 	private double size;
 	private float rotation;
@@ -112,6 +116,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		info = "";
 		size = 0;
 
+		startTime = System.currentTimeMillis();
 		zNear = 0.1f;
 		zFar = 100f;
 
@@ -231,9 +236,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	public void draw2D(GL10 gl) throws Object3DException {
 		if (window != null && canvasMap != null) {
 			size = (canvasMap.getHeight() * canvasMap.getRowBytes()) / 1024;
-			
-			for (Square s : images) { //Size in kb of all bitmaps
-				size += ((s.getImg().getHeight() * s.getImg().getRowBytes()) / 1024);
+
+			for (Square s : images) { // Size in kb of all bitmaps
+				if (s.getImg() != null) {
+					size += ((s.getImg().getHeight() * s.getImg().getRowBytes()) / 1024);
+				}
 			}
 
 			if (!data.isInited()) {
@@ -247,8 +254,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				endKM = "80km";
 				startKM = "0km";
 
-				paintText3D(startKM, new PointF(mWidth, mHeight / 100 * 85), 0);
-				paintText3D(endKM, new PointF(mWidth / 100 * 99 + 25,
+				paintText3D(startKM, null, new PointF(mWidth,
+						mHeight / 100 * 85), 0);
+				paintText3D(endKM, null, new PointF(mWidth / 100 * 99 + 25,
 						mHeight / 100 * 85), 0);
 
 				int height = mHeight / 100 * 85;
@@ -256,7 +264,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				if (zoomProgress > 92 || zoomProgress < 6) {
 					height = mHeight / 100 * 80;
 				}
-				paintText3D(app.getZoomLevel(), new PointF((mWidth / 100
+				paintText3D(app.getZoomLevel(), null, new PointF((mWidth / 100
 						* zoomProgress + 20), height), 0);
 			}
 
@@ -284,6 +292,52 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			//
 			// }
 
+			// endTime = System.currentTimeMillis();
+			// dt = endTime - startTime;
+			// if (dt > 100) {
+			//
+			// startTime = System.currentTimeMillis();
+			// }
+			text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering (Set
+			// Color WHITE), for alpha
+			for (TextBox t : text3d) {
+				// System.out.println(t.getRotation());
+				gl.glPushMatrix();
+				// gl.glRotatef(t.getRotation(), 0, 1, 0);
+				String[] split = splitStringEvery(t.getTekst(), 10);
+
+				t.setBlockH((int) (split.length * text.getHeight()));
+				t.setBlockW((int) getTextWidth(t.getTekst()));
+
+				int tick = -1;
+				for (String s : split) {
+					text.draw(
+							s,
+							(t.getLoc().x - getTextWidth(s)),
+							((mHeight - t.getLoc().y))
+									- (tick * text.getHeight() - 10));
+					tick++;
+				}
+
+				t.setLoc(new PointF(t.getLoc().x, t.getLoc().y
+						- text.getHeight()));
+				t.setBlockW(t.getBlockW() + 10); // Ietsje breeder is net wat
+													// mooier
+
+				drawBB(t.getTekst() + "bb", t);
+				// images.add(new Square(paint, t.getLoc().x, t.getLoc().y, t
+				// .getBlockW(), t.getBlockH()));
+
+				// blocks.add(new Block(blockW, blockH, (int) t.getLoc().x,
+				// (int) t.getLoc().y, t.getTekst()));
+				// text.draw(parsedStr,
+				// t.getLoc().x - (getTextWidth(t.getTekst()) / 2),
+				// (mHeight - t.getLoc().y));
+				gl.glPopMatrix();
+			}
+
+			text.end();
+
 			window.draw(gl, Util.loadGLTexture(gl, canvasMap, "Radar"));
 
 			for (Square s : images) {
@@ -295,33 +349,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 			}
 
-			text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering (Set
-												// Color WHITE), for alpha
-			for (TextBox t : text3d) {
-				// System.out.println(t.getRotation());
-				gl.glPushMatrix();
-				// gl.glRotatef(t.getRotation(), 0, 1, 0);
-				String[] split = splitStringEvery(t.getTekst(), 10);
-
-				int blockH = (int) (split.length * text.getHeight());
-				int blockW = (int) getTextWidth(split[0]);
-
-				int tick = -1;
-				for (String s : split) {
-					text.draw(
-							s,
-							(t.getLoc().x - getTextWidth(s)),
-							((mHeight - t.getLoc().y))
-									- (tick * text.getHeight() - 10));
-					tick++;
-				}
-				// text.draw(parsedStr,
-				// t.getLoc().x - (getTextWidth(t.getTekst()) / 2),
-				// (mHeight - t.getLoc().y));
-				gl.glPopMatrix();
-			}
-
-			text.end();
 		}
 	}
 
@@ -483,6 +510,38 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	/**
+	 * visual helper method to help debugging touch area's
+	 * 
+	 * @param id
+	 * @param box
+	 */
+	public void drawBB(String id, TextBox box) {
+		boolean create = false;
+
+		if (images.isEmpty()) {
+			create = true;
+		}
+
+		Square tmp = new Square(paint, (box.getLoc().x - box.getBlockW() / 2),
+				mHeight - (box.getLoc().y + box.getBlockH() / 2),
+				box.getBlockW(), box.getBlockH());
+		tmp.setIdentifier(id);
+		for (Square s : images) {
+			if (s.equals(tmp)) {
+				s.update(tmp); // Updating will stop bitmaps from flickering and
+								// increases performance
+				create = false;
+				break;
+			} else {
+				create = true;
+			}
+		}
+		if (create) {
+			images.add(tmp);
+		}
+	}
+
+	/**
 	 * Adds the specified bitmap to a buffer which will be drawed in the next
 	 * loop.
 	 * 
@@ -531,8 +590,29 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * @param location
 	 *            Where you want to draw it
 	 */
-	public void paintText3D(String tekst, PointF location, float rotation) {
-		text3d.add(new TextBox(tekst, location, rotation));
+	public void paintText3D(String tekst, String url, PointF location,
+			float rotation) {
+		boolean create = false;
+
+		if (text3d.isEmpty()) {
+			create = true;
+		}
+
+		TextBox box = new TextBox(tekst, url, location, rotation);
+
+		for (TextBox t : text3d) {
+			if (t.equals(box)) {
+				t.update(box); // Updating will stop bitmaps from flickering and
+								// increases performance
+				create = false;
+				break;
+			} else {
+				create = true;
+			}
+		}
+		if (create) {
+			text3d.add(box);
+		}
 	}
 
 	/**
@@ -610,13 +690,13 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private void clearBuffers() {
 		canvasMap.eraseColor(0);
 		models.clear();
-		text3d.clear();
 	}
 
 	@SuppressLint("NewApi")
 	public void onDrawFrame(GL10 gl) {
 		long time1 = System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+
 		try {
 			clearBuffers();
 
@@ -635,7 +715,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		} catch (Object3DException e) {
 			// TODO: throw this to a toast and close app?
 		}
-
 	}
 
 	/**
@@ -688,6 +767,10 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				+ (GLParameters.DRAWTEX ? "draw texture, " : "") + (GLParameters.VBO ? "vbos"
 				: ""));
 
+	}
+
+	public Set<TextBox> getBoundingBoxes() {
+		return text3d;
 	}
 
 	public Canvas getCanvas() {

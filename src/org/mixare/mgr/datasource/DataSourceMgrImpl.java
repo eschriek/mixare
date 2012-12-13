@@ -18,7 +18,6 @@
  */
 package org.mixare.mgr.datasource;
 
-import java.math.BigDecimal;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -27,8 +26,6 @@ import org.mixare.data.DataSource;
 import org.mixare.data.DataSourceStorage;
 import org.mixare.mgr.downloader.DownloadRequest;
 import org.mixare.mgr.location.LocationBlur;
-
-import android.util.Log;
 
 class DataSourceMgrImpl implements DataSourceManager {
 

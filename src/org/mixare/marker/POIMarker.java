@@ -23,7 +23,6 @@ import java.text.DecimalFormat;
 
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.PaintScreen;
-import org.mixare.lib.gui.TextObj;
 
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -131,7 +130,7 @@ public class POIMarker extends LocalMarker {
 		// dw.setStrokeWidth(1f);
 		// dw.setFill(true);
 		if (isVisible) {
-			dw.paintText3D(textStr, new PointF(signMarker.x, signMarker.y
+			dw.paintText3D(textStr, getURL(), new PointF(signMarker.x, signMarker.y
 					+ maxHeight), currentAngle + 90);
 		}
 		// dw.paintObj(txtLab, signMarker.x - txtLab.getWidth() / 2,

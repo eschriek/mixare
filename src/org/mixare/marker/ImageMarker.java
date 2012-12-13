@@ -23,7 +23,6 @@ import java.net.MalformedURLException;
 
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.PaintScreen;
-import org.mixare.lib.gui.TextObj;
 import org.mixare.lib.marker.draw.DrawImage;
 import org.mixare.lib.render.MixVector;
 
@@ -146,15 +145,10 @@ public class ImageMarker extends LocalMarker {
 		if (isVisible) {
 			final float maxHeight = Math.round(dw.getHeight() / 10f) + 1;
 			String textStr = MixUtils.shortenTitle(title, distance);
-			// dw.setColor(this.getColor());
 			final float currentAngle = MixUtils.getAngle(cMarker.x, cMarker.y,
 					getSignMarker().x, getSignMarker().y);
-			// //txtLab.prepare(textBlock);
-			// dw.setStrokeWidth(1f);
-			// dw.setFill(true);
-			// dw.paintObj(txtLab, getSignMarker().x - txtLab.getWidth() / 2,
-			// getSignMarker().y + maxHeight, currentAngle + 90, 1);
-			dw.paintText3D(textStr, new PointF(getSignMarker().x,
+
+			dw.paintText3D(textStr, getURL(), new PointF(getSignMarker().x,
 					getSignMarker().y + maxHeight), currentAngle + 90);
 		}
 	}

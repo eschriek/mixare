@@ -34,12 +34,12 @@ import java.util.TimerTask;
 import org.mixare.data.DataHandler;
 import org.mixare.data.DataSource;
 import org.mixare.gui.RadarPoints;
+import org.mixare.lib.MixStateInterface;
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.DataViewInterface;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.gui.ScreenLine;
 import org.mixare.lib.marker.Marker;
-import org.mixare.lib.marker.draw.PrimitiveProperty.primitive;
 import org.mixare.lib.render.Camera;
 import org.mixare.mgr.downloader.DownloadManager;
 import org.mixare.mgr.downloader.DownloadRequest;
@@ -47,7 +47,6 @@ import org.mixare.mgr.downloader.DownloadResult;
 
 import android.graphics.Color;
 import android.location.Location;
-import android.os.Handler;
 import android.util.Log;
 
 /**
@@ -260,24 +259,6 @@ public class DataView implements DataViewInterface {
 			}
 		}
 		
-		//SLOW
-//		for (int i = dataHandler.getMarkerCount() - 1; i >= 0; i--) {
-//			final Marker ma = dataHandler.getMarker(i);
-//			// if (ma.isActive() && (ma.getDistance() / 1000f < radius || ma
-//			// instanceof NavigationMarker || ma instanceof SocialMarker)) {
-//			if (ma.isActive() && (ma.getDistance() / 1000f < radius)) {
-//
-//				// To increase performance don't recalculate position vector
-//				// for every marker on every draw call, instead do this only
-//				// after onLocationChanged and after downloading new marker
-//				// if (!frozen)
-//				// ma.update(curFix);
-//				if (!frozen)
-//					ma.calcPaint(cam, addX, addY);
-//				ma.draw(dw);
-//			}
-//		}
-
 		// Draw Radar
 		drawRadar(dw);
 
@@ -293,9 +274,6 @@ public class DataView implements DataViewInterface {
 			switch (evt.type) {
 			case UIEvent.KEY:
 				handleKeyEvent((KeyEvent) evt);
-				break;
-			case UIEvent.CLICK:
-				handleClickEvent((ClickEvent) evt);
 				break;
 			}
 		}
@@ -425,28 +403,6 @@ public class DataView implements DataViewInterface {
 		}
 	}
 
-	boolean handleClickEvent(ClickEvent evt) {
-		boolean evtHandled = false;
-
-		// Handle event
-		if (state.nextLStatus == MixState.DONE) {
-			// the following will traverse the markers in ascending order (by
-			// distance) the first marker that
-			// matches triggers the event.
-			// TODO handle collection of markers. (what if user wants the one at
-			// the back)
-//			for(Marker pm : dataHandler.getMarkerList()){
-//				evtHandled = pm.fClick(evt.x, evt.y, mixContext, state);
-			}
-			for (int i = 0; i < dataHandler.getMarkerCount() && !evtHandled; i++) {
-				Marker pm = dataHandler.getMarker(i);
-
-				evtHandled = pm.fClick(evt.x, evt.y, mixContext, state);
-			}
-		
-		return evtHandled;
-	}
-
 	private void radarText(PaintScreen dw, String txt, float x, float y,
 			boolean bg) {
 		float padw = 4, padh = 2;
@@ -462,12 +418,6 @@ public class DataView implements DataViewInterface {
 		}
 		dw.paintText(padw + x - w / 2, padh + dw.getTextAsc() + y - h / 2, txt,
 				false);
-	}
-
-	public void clickEvent(float x, float y) {
-		synchronized (uiEvents) {
-			uiEvents.add(new ClickEvent(x, y));
-		}
 	}
 
 	public void keyEvent(int keyCode) {
@@ -496,6 +446,10 @@ public class DataView implements DataViewInterface {
 		state.nextLStatus = MixState.NOT_STARTED;
 	}
 
+	public MixStateInterface getMixState() {
+		return state;
+	}
+	
 	private void callRefreshToast() {
 		mixContext.getActualMixView().runOnUiThread(new Runnable() {
 
@@ -514,21 +468,6 @@ class UIEvent {
 	public static final int KEY = 1;
 
 	public int type;
-}
-
-class ClickEvent extends UIEvent {
-	public float x, y;
-
-	public ClickEvent(float x, float y) {
-		this.type = CLICK;
-		this.x = x;
-		this.y = y;
-	}
-
-	@Override
-	public String toString() {
-		return "(" + x + "," + y + ")";
-	}
 }
 
 class KeyEvent extends UIEvent {

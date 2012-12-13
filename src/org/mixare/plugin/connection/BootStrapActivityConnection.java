@@ -28,7 +28,6 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
 
 /**
  * A plugin loader + binder for bootstrap plugins (plugins that are loaded on start)

@@ -27,10 +27,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.json.JSONException;
 import org.mixare.MixView;
-import org.mixare.marker.NavigationMarker;
 import org.mixare.data.DataHandler;
 import org.mixare.data.DataSource;
 import org.mixare.lib.marker.Marker;
+import org.mixare.marker.NavigationMarker;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;

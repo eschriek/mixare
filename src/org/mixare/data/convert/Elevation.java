@@ -1,10 +1,7 @@
 package org.mixare.data.convert;
 
-import java.util.concurrent.ExecutionException;
-
 import org.mixare.mgr.HttpTools;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Looper;
 import android.util.Log;

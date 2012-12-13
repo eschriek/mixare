@@ -18,16 +18,12 @@
  */
 package org.mixare.plugin.remoteobjects;
 
-import org.mixare.lib.MixContextInterface;
-import org.mixare.lib.MixStateInterface;
 import org.mixare.lib.gui.Label;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.marker.Marker;
-import org.mixare.lib.marker.draw.ClickHandler;
 import org.mixare.lib.marker.draw.DrawCommand;
 import org.mixare.lib.marker.draw.ParcelableProperty;
 import org.mixare.lib.marker.draw.PrimitiveProperty;
-import org.mixare.lib.marker.draw.PrimitiveProperty.primitive;
 import org.mixare.lib.render.Camera;
 import org.mixare.lib.render.MixVector;
 import org.mixare.lib.service.IMarkerService;
@@ -35,7 +31,6 @@ import org.mixare.plugin.PluginNotFoundException;
 
 import android.location.Location;
 import android.os.RemoteException;
-import android.util.Log;
 
 /**
  * The remote marker sends request to the (remote)plugin that it is connected to
@@ -272,27 +267,6 @@ public class RemoteMarker implements Marker {
 		}
 	}
 
-	@Override
-	public boolean fClick(float x, float y, MixContextInterface ctx,
-			MixStateInterface state) {
-		ClickHandler clickHandler;
-		try {
-			// sending optional information.
-			iMarkerService.setExtrasPrim(markerName, "x",
-					new PrimitiveProperty(primitive.FLOAT.name(), (Float) x));
-			iMarkerService.setExtrasPrim(markerName, "y",
-					new PrimitiveProperty(primitive.FLOAT.name(), (Float) y));
-
-			clickHandler = iMarkerService.fClick(markerName);
-			if (clickHandler != null) {
-				return clickHandler.handleClick(x, y, ctx, state);
-			}
-			return false;
-		} catch (RemoteException e) {
-			throw new PluginNotFoundException();
-		}
-	}
-	
 	@Override
 	public boolean equals(Object o) {
 		if (o instanceof RemoteMarker) {
