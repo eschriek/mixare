@@ -1,7 +1,6 @@
 Broken:
 
 - Fix Othershape (Triangle) and paintPath, or replace them with a 3D model.
-- Touch events are broken
 - !! EGL context is lost onPause (setPreserveEGLContext doesnt do his job)
 
 Partially Broken:
@@ -14,3 +13,4 @@ Partially Broken:
 Anything else:
 
 - Memory leak somewhere (probably caused by openGL) results in a SIGSEGV after a while.
+- The bounding boxes used by touchevents should be tweaked further (maybe bigger, wider, etc.)
