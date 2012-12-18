@@ -29,7 +29,8 @@ import java.util.List;
 import org.mixare.R.drawable;
 import org.mixare.data.DataSourceList;
 import org.mixare.data.DataSourceStorage;
-import org.mixare.lib.gui.MixViewInterface;
+import org.mixare.lib.MixViewInterface;
+import org.mixare.lib.gui.GLParameters;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.reality.Filter;
 import org.mixare.lib.render.Matrix;
@@ -602,20 +603,6 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	 */
 	public void refreshDownload() {
 		getMixViewData().getMixContext().getDownloadManager().switchOn();
-		// try {
-		// if (getMixViewData().getDownloadThread() != null){
-		// if (!getMixViewData().getDownloadThread().isInterrupted()){
-		// getMixViewData().getDownloadThread().interrupt();
-		// getMixViewData().getMixContext().getDownloadManager().restart();
-		// }
-		// }else { //if no download thread found
-		// getMixViewData().setDownloadThread(new Thread(getMixViewData()
-		// .getMixContext().getDownloadManager()));
-		// //@TODO Syncronize DownloadManager, call Start instead of run.
-		// mixViewData.getMixContext().getDownloadManager().run();
-		// }
-		// }catch (Exception ex){
-		// }
 	}
 
 	/**
@@ -826,7 +813,8 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 		MenuItem item8 = menu.add(base, base + 7, base + 7,
 				getString(R.string.menu_item_8));
 
-		MenuItem item9 = menu.add(base, base + 8, base + 8, "Resfresh");
+		MenuItem item9 = menu.add(base, base + 8, base + 8, "Refresh");
+		MenuItem item10 = menu.add(base, base + 9, base + 9, "Debug BB");
 
 		/* assign icons to the menu items */
 		item1.setIcon(drawable.icon_datasource);
@@ -948,6 +936,9 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			break;
 		case 9:
 			refresh();
+			break;
+		case 10:
+			GLParameters.ENABLEBB = !GLParameters.ENABLEBB;
 			break;
 		}
 		return true;

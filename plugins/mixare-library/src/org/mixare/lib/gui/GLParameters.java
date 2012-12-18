@@ -18,4 +18,6 @@ public class GLParameters {
 	public static boolean isOPENGL10 = false;
 	public static boolean ENABLE3D = false;
 	public static boolean ENABLEBACKFACES = false;
+	public static boolean ENABLEBB = false;
+	public static int MAX_STACK_DEPTH = 0;
 }

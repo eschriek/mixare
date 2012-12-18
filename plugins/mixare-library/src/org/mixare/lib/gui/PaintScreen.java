@@ -21,18 +21,16 @@ package org.mixare.lib.gui;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+import org.mixare.lib.marker.InitialMarkerData;
 import org.mixare.lib.model3d.Mesh;
 import org.mixare.lib.model3d.ModelLoadException;
 import org.mixare.lib.model3d.parsers.ObjReader;
@@ -40,16 +38,20 @@ import org.mixare.lib.model3d.parsers.OffReader;
 import org.mixare.lib.model3d.text.GLText;
 import org.mixare.lib.model3d.text.TextBox;
 
+import org.mixare.lib.DataViewInterface;
+import org.mixare.lib.MixViewInterface;
+import org.mixare.lib.R;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.drawable.Drawable;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.os.Parcel;
@@ -82,6 +84,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private MixViewInterface app;
 	private DataViewInterface data;
 	private Paint zoomPaint;
+	private Bitmap arrow;
 	private GLText text, textInfo;
 	private HashMap<String, Model3D> models;
 	private Set<TextBox> text3d;
@@ -99,9 +102,15 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		app = (MixViewInterface) cont;
 
 		try {
+			// Load default models
 			InputStream in = ((Context) app).getAssets().open("poi.obj");
-			InputStream in2 = ((Context) app).getAssets().open("triangle.off");
-			triangle = new OffReader((Context) app).readMesh(in2);
+			InputStream in2 = ((Context) app).getAssets().open("triangle.obj");
+			InputStream in3 = ((Context) app).getResources().openRawResource(
+					R.drawable.arrow);
+
+			arrow = BitmapFactory.decodeStream(in3);
+			arrow = Bitmap.createScaledBitmap(arrow, 100, 100, false);
+			triangle = new ObjReader((Context) app).readMesh(in2);
 			poi = new ObjReader((Context) app).readMesh(in);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -276,67 +285,59 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					- (mHeight - 100));
 			textInfo.end();
 
-			// gl.glColor4f(1f, 1f, 1f, 1f);
-			// window.draw(gl, Util.loadGLTexture(gl, canvasMap));
-			// for (Square s : images) {
-			// // if (!s.isLoaded() && s.getImg() != null) {
-			// // s.setTextures(Util.loadGLTexture(gl, s.getImg(),
-			// // "Bitmap"));
-			// // }
-			// gl.glColor4f(1f, 1f, 1f, 0.6f); // Transparant bitmaps
-			// if (!s.isLoaded() && s.getImg() != null) {
-			// s.draw(gl, Util.loadGLTexture(gl, s.getImg()));
-			// } else {
-			// s.draw(gl);
-			// }
-			//
-			// }
+			if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
+				throw new Object3DException("Matrix stack overflow, Depth > : "
+						+ GLParameters.MAX_STACK_DEPTH);
+			}
 
-			// endTime = System.currentTimeMillis();
-			// dt = endTime - startTime;
-			// if (dt > 100) {
-			//
-			// startTime = System.currentTimeMillis();
-			// }
-			text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering (Set
-			// Color WHITE), for alpha
+			int cnt = 0;
 			for (TextBox t : text3d) {
-				// System.out.println(t.getRotation());
-				gl.glPushMatrix();
-				// gl.glRotatef(t.getRotation(), 0, 1, 0);
+				cnt++;
+				if (cnt > 2) {
+					Log.i("Track", "cnt:2");
+					break;
+				}
+
+				text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering
+													// (Set Color WHITE), for
+													// alpha
+
 				String[] split = splitStringEvery(t.getTekst(), 10);
 
 				t.setBlockH((int) (split.length * text.getHeight()));
 				t.setBlockW((int) getTextWidth(t.getTekst()));
 
+				gl.glPushMatrix();
+				gl.glLoadIdentity();
+
+				gl.glTranslatef(t.getLoc().x
+						+ (text.getLength(t.getTekst()) / 2),
+						(t.getLoc().y + (text.getHeight() / 2)), 0);
+				gl.glRotatef(t.getRotation(), 0f, 0f, 1f);
+				gl.glTranslatef(-(text.getLength(t.getTekst()) / 2),
+						-(text.getHeight() / 2), 0);
+
 				int tick = -1;
 				for (String s : split) {
-					text.draw(
-							s,
-							(t.getLoc().x - getTextWidth(s)),
-							((mHeight - t.getLoc().y))
-									- (tick * text.getHeight() - 10));
+
+					text.draw(s, 0, 0 - (tick * text.getHeight()));
+
 					tick++;
 				}
 
+				gl.glPopMatrix();
+				text.end();
+
 				t.setLoc(new PointF(t.getLoc().x, t.getLoc().y
 						- text.getHeight()));
-				t.setBlockW(t.getBlockW() + 10); // Ietsje breeder is net wat
+				t.setBlockW(t.getBlockW() + 10); // Ietsje breeder is net
+													// wat
 													// mooier
 
-				drawBB(t.getTekst() + "bb", t);
-				// images.add(new Square(paint, t.getLoc().x, t.getLoc().y, t
-				// .getBlockW(), t.getBlockH()));
-
-				// blocks.add(new Block(blockW, blockH, (int) t.getLoc().x,
-				// (int) t.getLoc().y, t.getTekst()));
-				// text.draw(parsedStr,
-				// t.getLoc().x - (getTextWidth(t.getTekst()) / 2),
-				// (mHeight - t.getLoc().y));
-				gl.glPopMatrix();
+				if (GLParameters.ENABLEBB) {
+					drawBB(t.getTekst() + "bb", t);
+				}
 			}
-
-			text.end();
 
 			window.draw(gl, Util.loadGLTexture(gl, canvasMap, "Radar"));
 
@@ -344,7 +345,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				if (s.getTextures()[0] == 0 && s.getImg() != null) {
 					s.setTextures(Util.loadGLTexture(gl, s.getImg(), "Bitmap"));
 				}
-				gl.glColor4f(1f, 1f, 1f, 0.6f);
+				gl.glColor4f(1f, 1f, 1f, 0.6f); // Transparant images
 				s.draw(gl);
 
 			}
@@ -461,11 +462,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 				gl.glTranslatef(points[0], points[1], points[2]);
 
-				// System.out.println(model.getDistance() + " " + points[2]
-				// + model.getSchaal() + " " + model.getxPos() + " "
-				// + model.getyPos() + " " + model.isBlended() + " "
-				// + model.getBearing());
-
 				// Scale
 				// Schaalen met meer dan 50 zorgt voor enorme objecten.
 				if (model.getSchaal() > 50) {
@@ -576,9 +572,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		if (create) {
 			images.add(tmp);
 		}
-
-		// images.add(new Square("" + new Random(0).nextInt(), img, paint, x, y,
-		// img.getWidth(), img.getHeight()));
 	}
 
 	/**
@@ -592,6 +585,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 */
 	public void paintText3D(String tekst, String url, PointF location,
 			float rotation) {
+
 		boolean create = false;
 
 		if (text3d.isEmpty()) {
@@ -602,7 +596,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		for (TextBox t : text3d) {
 			if (t.equals(box)) {
-				t.update(box); // Updating will stop bitmaps from flickering and
+				t.update(box); // Updating will stop bitmaps from flickering
+								// and
 								// increases performance
 				create = false;
 				break;
@@ -611,7 +606,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			}
 		}
 		if (create) {
+			Log.i("Track", "Text3d");
 			text3d.add(box);
+
 		}
 	}
 
@@ -655,14 +652,16 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				if (model.getObj().endsWith("poi")) {
 					tmp = poi;
 				} else if (model.getObj().endsWith("triangle")) {
-					tmp = triangle; // TODO: Make a new triangle model in the
-									// origin
+					tmp = triangle;
 				} else {
 					InputStream input = new FileInputStream(model.getObj());
 					if (input != null) {
 						if (model.getObj().endsWith(".txt")) { // TODO: file
 																// store
 																// fixen
+							tmp = new OffReader((Context) app).readMesh(input);
+						}
+						if (model.getObj().endsWith(".off")) {
 							tmp = new OffReader((Context) app).readMesh(input);
 						}
 						if (model.getObj().endsWith(".obj")) {
@@ -689,7 +688,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	private void clearBuffers() {
 		canvasMap.eraseColor(0);
-		models.clear();
+		// models.clear();
 	}
 
 	@SuppressLint("NewApi")
@@ -697,8 +696,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		long time1 = System.currentTimeMillis();
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 
+		clearBuffers();
 		try {
-			clearBuffers();
 
 			ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
 			draw2D(gl);
@@ -713,7 +712,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			gl.glPopMatrix();
 			dt = System.currentTimeMillis() - time1;
 		} catch (Object3DException e) {
-			// TODO: throw this to a toast and close app?
+
 		}
 	}
 
@@ -724,6 +723,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		Log.i("Mixare", "onSurfaceChanged SOMETHING HAPPEND!!!");
 
 		clearBuffers();
+
+		// Hack for losing EGL context. It would be nicer to preserve the EGL
+		// context but hacking GLSurfaceView will cause bugs on different
+		// devices
+		text3d.clear();
+		images.clear();
 
 		mWidth = width;
 		mHeight = height;
@@ -857,44 +862,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	}
 
-	// public void paintRoundedRect(float x, float y, float width, float height)
-	// {
-	// // rounded edges. patch by Ignacio Avellino
-	//
-	// RectF rect = new RectF(x, y, x + width, y + height);
-	// canvas.drawRoundRect(rect, 15F, 15F, paint);
-	// }
-
-	// public void paintBitmap(Bitmap bitmap, float left, float top) {
-	//
-	// canvas.drawBitmap(bitmap, left, top, paint);
-	// }
-
 	public void paintPath(Path path, float x, float y, float width,
 			float height, float rotation, float scale) {
-		// TODO: Fix this
 
-		//
-		// Bitmap tmp = Bitmap.createBitmap((int) width, (int) height,
-		// Config.ARGB_4444);
-		// Canvas c = new Canvas(tmp);
-		//
-		// // c.save();
-		// // c.translate(x + width / 2, y + height / 2);
-		// // c.rotate(rotation);
-		// // c.scale(scale, scale);
-		// // c.translate(-(width / 2), -(height / 2));
-		// c.drawPath(path, paint);
-		// // c.restore();
-		//
-		// paintBitmapGL("path" + tmp.getHeight() * tmp.getRowBytes(), tmp, x,
-		// y);
+		paintBitmapGL("path", arrow, x, y);
 	}
-
-	// public void paintCircle(float x, float y, float radius) {
-	// canvas.drawCircle(x, y, radius, paint);
-	//
-	// }
 
 	public void paintText(float x, float y, String text, boolean underline) {
 

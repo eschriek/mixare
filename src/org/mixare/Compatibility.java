@@ -42,7 +42,7 @@ public class Compatibility {
 	static {  
 		initCompatibility();
 	};
-
+	
 	/** this will fail on older phones (Android version < 2.0) */
 	private static void initCompatibility() {
 		try {

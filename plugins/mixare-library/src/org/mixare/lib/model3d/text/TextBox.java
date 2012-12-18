@@ -1,10 +1,8 @@
 package org.mixare.lib.model3d.text;
 
-import org.mixare.lib.gui.Updateable;
-
 import android.graphics.PointF;
 
-public class TextBox implements Updateable {
+public class TextBox {
 
 	private String tekst;
 	private String url;
@@ -76,7 +74,6 @@ public class TextBox implements Updateable {
 		return false;
 	}
 
-	@Override
 	public void update(Object o) {
 		TextBox t = ((TextBox) o);
 

@@ -1,10 +1,13 @@
 package org.mixare;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.microedition.khronos.opengles.GL;
 
+import org.mixare.lib.DataViewInterface;
 import org.mixare.lib.MixContextInterface;
 import org.mixare.lib.MixStateInterface;
-import org.mixare.lib.gui.DataViewInterface;
 import org.mixare.lib.gui.GLParameters;
 import org.mixare.lib.gui.MatrixTrackingGL;
 import org.mixare.lib.gui.PaintScreen;
@@ -12,7 +15,9 @@ import org.mixare.lib.model3d.text.TextBox;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
@@ -56,29 +61,57 @@ public class Surface3D extends GLSurfaceView {
 		screen = new PaintScreen(context, data);
 		MixView.setdWindow(screen);
 
-		// setDebugFlags(DEBUG_LOG_GL_CALLS);
-		setPreserveEGLContextOnPause(true); // werkt niet
-		setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+		// setDebugFlags(DEBUG_LOG_GL_CALLS); 
+		setEGLConfigChooser(8, 8, 8, 8, 16, 0); //ARGB 8888 ,D 16
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
 		setRenderer(MixView.getdWindow());
 	}
-
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
 		float x = e.getX();
 		float y = e.getY();
 		switch (e.getAction()) {
 		case MotionEvent.ACTION_DOWN:
+			List<TextBox> results = new ArrayList<TextBox>();
 			for (TextBox t : screen.getBoundingBoxes()) {
 				if (t.isTouchInside(x, y)) {
-					state.handleEvent(mxContext, t.getUrl());
+					results.add(t);
+
 				}
+			}
+
+			if (results.size() == 1) {
+				state.handleEvent(mxContext, results.get(0).getUrl());
+			} else if (results.size() > 1) {
+				List<String> strings = new ArrayList<String>();
+				List<String> links = new ArrayList<String>();
+				for (TextBox t : results) {
+					strings.add(t.getTekst());
+					links.add(t.getUrl());
+				}
+
+				final CharSequence[] items = strings.toArray(new String[strings
+						.size()]);
+				final CharSequence[] urls = links.toArray(new String[links
+						.size()]);
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(context);
+				builder.setTitle("Make your selection");
+				builder.setItems(items, new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int item) {
+						state.handleEvent(mxContext, urls[item].toString());
+						dialog.dismiss();
+					}
+				});
+				AlertDialog alert = builder.create();
+				alert.show();
 			}
 		}
 		return true;
 	}
-	
+
 	@Override
 	public void onPause() {
 		Log.i("Mixare", "3D Pauze");
