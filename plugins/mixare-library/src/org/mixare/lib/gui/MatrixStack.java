@@ -160,7 +160,7 @@ public class MatrixStack {
 
 	private void preflight_adjust(int dir) {
 		int newTop = mTop + dir * MATRIX_SIZE;
-		Log.i("Track", newTop + " " + newTop / 16);
+
 		try {
 			if (newTop < 0) {
 				throw new Object3DException("stack underflow");
@@ -179,7 +179,7 @@ public class MatrixStack {
 		mTop += dir * MATRIX_SIZE;
 	}
 
-	private final static int DEFAULT_MAX_DEPTH = 500;
+	private final static int DEFAULT_MAX_DEPTH = 64;
 	private final static int MATRIX_SIZE = 16;
 	private float[] mMatrix;
 	private int mTop;

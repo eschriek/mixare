@@ -61,7 +61,7 @@ public class Surface3D extends GLSurfaceView {
 		screen = new PaintScreen(context, data);
 		MixView.setdWindow(screen);
 
-		// setDebugFlags(DEBUG_LOG_GL_CALLS); 
+		//setDebugFlags(DEBUG_LOG_GL_CALLS); 
 		setEGLConfigChooser(8, 8, 8, 8, 16, 0); //ARGB 8888 ,D 16
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 

@@ -285,18 +285,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					- (mHeight - 100));
 			textInfo.end();
 
-			if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
-				throw new Object3DException("Matrix stack overflow, Depth > : "
-						+ GLParameters.MAX_STACK_DEPTH);
-			}
+//			if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
+//				throw new Object3DException("Matrix stack overflow, Depth > : "
+//						+ GLParameters.MAX_STACK_DEPTH);
+//			}
 
-			int cnt = 0;
 			for (TextBox t : text3d) {
-				cnt++;
-				if (cnt > 2) {
-					Log.i("Track", "cnt:2");
-					break;
-				}
 
 				text.begin(1.0f, 1.0f, 1.0f, 1.0f); // Begin Text Rendering
 													// (Set Color WHITE), for
@@ -307,14 +301,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				t.setBlockH((int) (split.length * text.getHeight()));
 				t.setBlockW((int) getTextWidth(t.getTekst()));
 
-				gl.glPushMatrix();
 				gl.glLoadIdentity();
+				gl.glPushMatrix();
 
-				gl.glTranslatef(t.getLoc().x
-						+ (text.getLength(t.getTekst()) / 2),
-						(t.getLoc().y + (text.getHeight() / 2)), 0);
-				gl.glRotatef(t.getRotation(), 0f, 0f, 1f);
-				gl.glTranslatef(-(text.getLength(t.getTekst()) / 2),
+				gl.glTranslatef(
+						t.getLoc().x + (getTextWidth(split[0]) / 2),
+						mHeight - (t.getLoc().y + (text.getHeight() / 2)), 0);
+				gl.glRotatef((360-t.getRotation()), 0f, 0f, 1f);
+				gl.glTranslatef(-(getTextWidth(split[0]) / 2),
 						-(text.getHeight() / 2), 0);
 
 				int tick = -1;
@@ -325,14 +319,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					tick++;
 				}
 
-				gl.glPopMatrix();
 				text.end();
+				gl.glPopMatrix();
 
 				t.setLoc(new PointF(t.getLoc().x, t.getLoc().y
 						- text.getHeight()));
-				t.setBlockW(t.getBlockW() + 10); // Ietsje breeder is net
-													// wat
-													// mooier
+				t.setBlockW(t.getBlockW() + 10); // Just a little wider
 
 				if (GLParameters.ENABLEBB) {
 					drawBB(t.getTekst() + "bb", t);
@@ -437,23 +429,25 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 *            GL object supplied by onDrawFrame
 	 */
 	public void draw3D(GL10 gl) {
-		rotation += 2.50;
+		//rotation += 2.50; Eye candy
 
 		synchronized (models) {
 			for (Model3D model : models.values()) {
 				grabber.getCurrentState(gl);
 
-				// Magische lijntjes, berekend van scherm coordinaten de
-				// bijbehorende projection coordinaten en vertaald ook de
-				// afstand naar het object naar een waarde ten opzichte van
-				// zNear en zFar
+				// Following lines calculate screen coordinates into projection
+				// space. Also calculates the distance to the object using
+				// distanceToDepth
+
 				gl.glPushMatrix();
+
 				float[] points = null;
 				if (model.getColor() == org.mixare.lib.model3d.Color.TO_FAR) {
 					points = unproject(model.getxPos(),
 							(GLParameters.HEIGHT - model.getyPos()),
-							distanceToDepth(50)); // Als het te ver is willen we
-													// dat wel zien
+							distanceToDepth(50)); // If the object is to far we
+													// want to see this (Arena
+													// only)
 				} else {
 					points = unproject(model.getxPos(),
 							(GLParameters.HEIGHT - model.getyPos()),
@@ -463,7 +457,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				gl.glTranslatef(points[0], points[1], points[2]);
 
 				// Scale
-				// Schaalen met meer dan 50 zorgt voor enorme objecten.
+				// Scale with more then 50 causes huge objects
 				if (model.getSchaal() > 50) {
 					model.setSchaal(25);
 				} else if (model.getSchaal() < 20) {
@@ -512,16 +506,13 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * @param box
 	 */
 	public void drawBB(String id, TextBox box) {
-		boolean create = false;
-
-		if (images.isEmpty()) {
-			create = true;
-		}
+		boolean create = images.isEmpty();
 
 		Square tmp = new Square(paint, (box.getLoc().x - box.getBlockW() / 2),
 				mHeight - (box.getLoc().y + box.getBlockH() / 2),
 				box.getBlockW(), box.getBlockH());
 		tmp.setIdentifier(id);
+
 		for (Square s : images) {
 			if (s.equals(tmp)) {
 				s.update(tmp); // Updating will stop bitmaps from flickering and
@@ -532,6 +523,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				create = true;
 			}
 		}
+
 		if (create) {
 			images.add(tmp);
 		}
@@ -551,11 +543,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 *            Y coordinate
 	 */
 	public void paintBitmapGL(String id, Bitmap img, float x, float y) {
-		boolean create = false;
-
-		if (images.isEmpty()) {
-			create = true;
-		}
+		boolean create = images.isEmpty();
 
 		Square tmp = new Square(id, img, paint, x, (mHeight - y),
 				img.getWidth(), img.getHeight());
@@ -585,28 +573,22 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 */
 	public void paintText3D(String tekst, String url, PointF location,
 			float rotation) {
-
-		boolean create = false;
-
-		if (text3d.isEmpty()) {
-			create = true;
-		}
+		boolean create = text3d.isEmpty();
 
 		TextBox box = new TextBox(tekst, url, location, rotation);
 
 		for (TextBox t : text3d) {
 			if (t.equals(box)) {
-				t.update(box); // Updating will stop bitmaps from flickering
-								// and
-								// increases performance
+				t.update(box);
+
 				create = false;
 				break;
 			} else {
 				create = true;
 			}
 		}
+
 		if (create) {
-			Log.i("Track", "Text3d");
 			text3d.add(box);
 
 		}
@@ -622,11 +604,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 */
 	public void paint3DModel(Model3D model) throws ModelLoadException {
 		Iterator<Entry<String, Model3D>> it = models.entrySet().iterator();
-		boolean create = false;
 
-		if (models.isEmpty()) {
-			create = true;
-		}
+		boolean create = models.isEmpty();
 
 		// To keep GC happy, load model once in memory.
 		while (it.hasNext()) {
@@ -656,9 +635,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				} else {
 					InputStream input = new FileInputStream(model.getObj());
 					if (input != null) {
-						if (model.getObj().endsWith(".txt")) { // TODO: file
+						if (model.getObj().endsWith(".txt")) { // TODO: fix file
 																// store
-																// fixen
+																// (betelgeuse)
 							tmp = new OffReader((Context) app).readMesh(input);
 						}
 						if (model.getObj().endsWith(".off")) {
@@ -736,7 +715,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		gl.glViewport(0, 0, width, height);
 		gl.glLoadIdentity();
 
-		// Coordinaten mappen naar scherm, bottom left georienteerd
+		// Map matrix to screen, bottom-left is origin.
 		gl.glOrthof(0, width, 0, height, -1, 1);
 
 	}
@@ -760,6 +739,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		GLParameters.SOFTWARERENDERER = renderer.contains("PixelFlinger");
 		GLParameters.isOPENGL10 = version.contains("1.0");
 		GLParameters.DRAWTEX = extensions.contains("draw_texture");
+
 		// VBOs are standard in GLES1.1
 		// No use using VBOs when software renderering, esp. since older
 		// versions of the software renderer

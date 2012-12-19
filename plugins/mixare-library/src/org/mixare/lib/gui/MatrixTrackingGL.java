@@ -543,7 +543,7 @@ public class MatrixTrackingGL implements GL, GL10, GL10Ext, GL11, GL11Ext {
 	}
 
 	public void glPushMatrix() {
-		Log.i("Track", new Throwable().fillInStackTrace().getStackTrace()[1].getMethodName());
+//		Log.i("Track", new Throwable().fillInStackTrace().getStackTrace()[1].getMethodName());
 		
 		mCurrent.glPushMatrix();
 		mgl.glPushMatrix();
