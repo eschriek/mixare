@@ -54,6 +54,7 @@ public class Square {
 	private float width, height;
 	private Bitmap img;
 	private boolean isLoaded;
+	private float rotation;
 
 	public Square(String identifier, Bitmap img, Paint p, float x, float y,
 			float width, float height) {
@@ -65,7 +66,8 @@ public class Square {
 	public Square(Paint paint, float x, float y, float width, float height) {
 
 		this.color = Util.paintColorByteToFloat(paint);
-
+		this.rotation = 0;
+		
 		if (paint.getStyle() == Paint.Style.FILL) {
 			this.filled = true;
 		} else {
@@ -118,6 +120,14 @@ public class Square {
 
 	public void setImg(Bitmap img) {
 		this.img = img;
+	}
+
+	public float getRotation() {
+		return rotation;
+	}
+
+	public void setRotation(float rotation) {
+		this.rotation = rotation;
 	}
 
 	@Override
@@ -182,6 +192,7 @@ public class Square {
 		this.y = o.getY();
 		this.width = o.getWidth();
 		this.height = o.getHeight();
+		this.rotation = o.getRotation();
 	}
 
 	/**
@@ -239,6 +250,10 @@ public class Square {
 			gl.glTranslatef(x, y, 0f);
 			if (textures[0] == 0) {
 				gl.glColor4f(color[0], color[1], color[2], color[3]);
+			}
+			
+			if(rotation != 0) {
+				gl.glRotatef(rotation, 1f, 0, 0f);
 			}
 
 			if (!filled) {

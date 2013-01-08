@@ -1,6 +1,7 @@
 Broken:
 
-- Adding marks blocks opengl thread and after there are some "ghost" markers
+- !!! glPushMatrix is causing a stack overflow in MatrixStack.java as soon as panaramio results are processed. glPushmatrix gets called as an infinite loop then, while it has a glPopMatrix after every push. Putting glPushMatrix in Draw2D or onDrawFrame makes no difference, therefore i think it is a bug in the MatrixTracker.
+- Fix navigation markers (arrow)
 - onResume creates a new paintscreen, but this is paintscreen is never shown
 
 Partially Broken:

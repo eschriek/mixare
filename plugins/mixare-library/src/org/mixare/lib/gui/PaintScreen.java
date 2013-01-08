@@ -30,7 +30,9 @@ import java.util.Set;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import org.mixare.lib.marker.InitialMarkerData;
+import org.mixare.lib.DataViewInterface;
+import org.mixare.lib.MixViewInterface;
+import org.mixare.lib.R;
 import org.mixare.lib.model3d.Mesh;
 import org.mixare.lib.model3d.ModelLoadException;
 import org.mixare.lib.model3d.parsers.ObjReader;
@@ -38,17 +40,14 @@ import org.mixare.lib.model3d.parsers.OffReader;
 import org.mixare.lib.model3d.text.GLText;
 import org.mixare.lib.model3d.text.TextBox;
 
-import org.mixare.lib.DataViewInterface;
-import org.mixare.lib.MixViewInterface;
-import org.mixare.lib.R;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
-import android.graphics.drawable.Drawable;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
@@ -84,7 +83,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private MixViewInterface app;
 	private DataViewInterface data;
 	private Paint zoomPaint;
-	private Bitmap arrow;
 	private GLText text, textInfo;
 	private HashMap<String, Model3D> models;
 	private Set<TextBox> text3d;
@@ -92,6 +90,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private MatrixGrabber grabber;
 	private Mesh poi;
 	private Mesh triangle;
+	private Mesh arrow;
 	private float zNear;
 	private float zFar;
 
@@ -103,13 +102,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		try {
 			// Load default models
-			InputStream in = ((Context) app).getAssets().open("poi.obj");
-			InputStream in2 = ((Context) app).getAssets().open("triangle.obj");
-			InputStream in3 = ((Context) app).getResources().openRawResource(
-					R.drawable.arrow);
+			InputStream in = ((Context) app).getAssets().open("poi2.obj");
+			InputStream in2 = ((Context) app).getAssets().open("triangle2.obj");
+			InputStream in3 = ((Context) app).getAssets().open("arrow3.obj");
 
-			arrow = BitmapFactory.decodeStream(in3);
-			arrow = Bitmap.createScaledBitmap(arrow, 100, 100, false);
+			arrow = new ObjReader((Context) app).readMesh(in3);
 			triangle = new ObjReader((Context) app).readMesh(in2);
 			poi = new ObjReader((Context) app).readMesh(in);
 		} catch (IOException e) {
@@ -285,10 +282,10 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					- (mHeight - 100));
 			textInfo.end();
 
-//			if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
-//				throw new Object3DException("Matrix stack overflow, Depth > : "
-//						+ GLParameters.MAX_STACK_DEPTH);
-//			}
+			// if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
+			// throw new Object3DException("Matrix stack overflow, Depth > : "
+			// + GLParameters.MAX_STACK_DEPTH);
+			// }
 
 			for (TextBox t : text3d) {
 
@@ -304,10 +301,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				gl.glLoadIdentity();
 				gl.glPushMatrix();
 
-				gl.glTranslatef(
-						t.getLoc().x + (getTextWidth(split[0]) / 2),
+				gl.glTranslatef(t.getLoc().x - (getTextWidth(split[0]) / 2),
 						mHeight - (t.getLoc().y + (text.getHeight() / 2)), 0);
-				gl.glRotatef((360-t.getRotation()), 0f, 0f, 1f);
+				gl.glRotatef((360 - t.getRotation()), 0f, 0f, 1f);
 				gl.glTranslatef(-(getTextWidth(split[0]) / 2),
 						-(text.getHeight() / 2), 0);
 
@@ -337,6 +333,13 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				if (s.getTextures()[0] == 0 && s.getImg() != null) {
 					s.setTextures(Util.loadGLTexture(gl, s.getImg(), "Bitmap"));
 				}
+
+				// if(s.getRotation() != 0) {
+				// System.out.println(s.getRotation() + " " +
+				// s.getIdentifier());
+				// gl.glRotatef(s.getRotation(), 0f, 0f, 1f);
+				// }
+
 				gl.glColor4f(1f, 1f, 1f, 0.6f); // Transparant images
 				s.draw(gl);
 
@@ -429,7 +432,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 *            GL object supplied by onDrawFrame
 	 */
 	public void draw3D(GL10 gl) {
-		//rotation += 2.50; Eye candy
+		// rotation += 2.50; Eye candy
 
 		synchronized (models) {
 			for (Model3D model : models.values()) {
@@ -477,8 +480,10 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				// model.getBearing()),
 				// 1f, 0f, 0f);
 				// gl.glRotatef(model.getRot_y(), 0f, 1f, 0f);
-				// gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
-
+				if (model.getRot_z() != 0) {
+					gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
+				}
+				
 				// Tekenen
 				if (model.getColor() != 0) {
 					float[] rgb = Util.hexToRGB(model.getColor());
@@ -542,11 +547,17 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * @param y
 	 *            Y coordinate
 	 */
-	public void paintBitmapGL(String id, Bitmap img, float x, float y) {
+	public void paintBitmapGL(String id, Bitmap img, float x, float y,
+			float rotation) {
 		boolean create = images.isEmpty();
 
 		Square tmp = new Square(id, img, paint, x, (mHeight - y),
 				img.getWidth(), img.getHeight());
+
+		if (rotation != 0) {
+			tmp.setRotation(rotation);
+		}
+
 		for (Square s : images) {
 			if (s.equals(tmp)) {
 				s.update(tmp); // Updating will stop bitmaps from flickering and
@@ -632,6 +643,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					tmp = poi;
 				} else if (model.getObj().endsWith("triangle")) {
 					tmp = triangle;
+				} else if (model.getObj().endsWith("path")) {
+					tmp = arrow;
 				} else {
 					InputStream input = new FileInputStream(model.getObj());
 					if (input != null) {
@@ -832,7 +845,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			triangleModel.setDistance(90);
 			triangleModel.setSchaal(20);
 			triangleModel.setObj(id);
-			triangleModel.setColor(0xFF0000);
+			triangleModel.setColor(0x0000FF);
 			triangleModel.setxPos(x);
 			triangleModel.setyPos(y);
 			paint3DModel(triangleModel);
@@ -842,10 +855,22 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	}
 
-	public void paintPath(Path path, float x, float y, float width,
+	public void paintPath(String id, Path path, float x, float y, float width,
 			float height, float rotation, float scale) {
+		try {
+			Model3D arrowModel = new Model3D();
 
-		paintBitmapGL("path", arrow, x, y);
+			arrowModel.setDistance(90);
+			arrowModel.setSchaal(20);
+			arrowModel.setObj(id);
+			arrowModel.setColor(0xFFFF00);
+			arrowModel.setRot_z((360-rotation));
+			arrowModel.setxPos(x);
+			arrowModel.setyPos(y);
+			paint3DModel(arrowModel);
+		} catch (ModelLoadException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void paintText(float x, float y, String text, boolean underline) {

@@ -83,7 +83,7 @@ public class NavigationMarker extends LocalMarker {
 			arrow.lineTo(x-radius, y);
 			arrow.lineTo(x-radius/3,y);
 			arrow.close();
-			dw.paintPath(arrow,cMarker.x,cMarker.y,radius*2,radius*2,currentAngle+90,1);			
+			dw.paintPath(getID()+"path",arrow,cMarker.x,cMarker.y,radius*2,radius*2,currentAngle+90,1);			
 		}
 	}
 
