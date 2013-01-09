@@ -1,11 +1,10 @@
 Broken:
 
-- Adding marks blocks opengl thread and after there are some "ghost" markers
+- Adding markerss blocks opengl thread and after that there might be some "ghost" markers
 - onResume creates a new paintscreen, but this is paintscreen is never shown
 
-Partially Broken:
+To be improved:
 
-- Zoombar does work, but not correct
 - Create a decent layout for text on screen
 - Better error handling.
 - The webview doesnt work for panoramio and OSM (sometimes). Not caused by 3d tho ;-)

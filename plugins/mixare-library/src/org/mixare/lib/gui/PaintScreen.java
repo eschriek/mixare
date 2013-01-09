@@ -260,27 +260,32 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				endKM = "80km";
 				startKM = "0km";
 
-				paintText3D(startKM, null, new PointF(mWidth,
-						mHeight / 100 * 85), 0);
-				paintText3D(endKM, null, new PointF(mWidth / 100 * 99 + 25,
-						mHeight / 100 * 85), 0);
+				text.begin();
+				text.draw(startKM, mWidth / 100 * 2,
+						(mHeight - (mHeight / 100 * 85)));
+				text.draw(endKM, mWidth / 100 * 99, mHeight
+						- (mHeight / 100 * 85));
 
 				int height = mHeight / 100 * 85;
 				int zoomProgress = app.getZoomProgress();
 				if (zoomProgress > 92 || zoomProgress < 6) {
 					height = mHeight / 100 * 80;
 				}
-				paintText3D(app.getZoomLevel(), null, new PointF((mWidth / 100
-						* zoomProgress + 20), height), 0);
+
+				text.draw(app.getZoomLevel(), mWidth / 100 * zoomProgress + 20,
+						(mHeight - height));
+				text.end();
 			}
 
 			data.draw(this);
 
-			textInfo.begin();
-			textInfo.draw(info + " FPS : " + (1000 / dt) + " size : " + size
-					+ " kb", (mWidth - (getTextWidth(info) + 210)), mHeight
-					- (mHeight - 100));
-			textInfo.end();
+			if (GLParameters.ENABLEBB) {
+				textInfo.begin();
+				textInfo.draw(info + " FPS : " + (1000 / dt) + " size : "
+						+ size + " kb", (mWidth - (getTextWidth(info) + 210)),
+						mHeight - (mHeight - 100));
+				textInfo.end();
+			}
 
 			// if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
 			// throw new Object3DException("Matrix stack overflow, Depth > : "
@@ -458,7 +463,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				}
 
 				gl.glTranslatef(points[0], points[1], points[2]);
-
+				//gl.glTranslatef(-15, 2, 0);
 				// Scale
 				// Scale with more then 50 causes huge objects
 				if (model.getSchaal() > 50) {
@@ -483,7 +488,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				if (model.getRot_z() != 0) {
 					gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
 				}
-				
+
 				// Tekenen
 				if (model.getColor() != 0) {
 					float[] rgb = Util.hexToRGB(model.getColor());
@@ -680,7 +685,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 	private void clearBuffers() {
 		canvasMap.eraseColor(0);
-		// models.clear();
+		// models.clear(); // Solves the ghost markers, it has no impact on
+		// performance because GC is blocking anyway. You want
+		// to disable this if the blocks are gone
 	}
 
 	@SuppressLint("NewApi")
@@ -713,7 +720,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 */
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		Log.i("Mixare", "onSurfaceChanged SOMETHING HAPPEND!!!");
-
+		Log.i(TAG, "" + Thread.currentThread().getId());
 		clearBuffers();
 
 		// Hack for losing EGL context. It would be nicer to preserve the EGL
@@ -864,7 +871,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			arrowModel.setSchaal(20);
 			arrowModel.setObj(id);
 			arrowModel.setColor(0xFFFF00);
-			arrowModel.setRot_z((360-rotation));
+			arrowModel.setRot_z((360 - rotation));
 			arrowModel.setxPos(x);
 			arrowModel.setyPos(y);
 			paint3DModel(arrowModel);

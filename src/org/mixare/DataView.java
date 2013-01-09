@@ -138,7 +138,8 @@ public class DataView implements DataViewInterface {
 		return radius;
 	}
 
-	public void setRadius(final float radius) {
+	public void setRadius(float radius) {
+		System.out.println(radius);
 		this.radius = radius;
 	}
 
@@ -370,6 +371,8 @@ public class DataView implements DataViewInterface {
 		dw.setColor(Color.rgb(255, 255, 255));
 		dw.setFontSize(12);
 
+		//System.out.println(MixUtils.formatDist(radius * 1000) + " " + radius);
+		
 		radarText(dw, MixUtils.formatDist(radius * 1000), rx
 				+ RadarPoints.RADIUS, ry + RadarPoints.RADIUS * 2 - 10, false);
 		radarText(dw, "" + bearing + ((char) 176) + " " + dirTxt, rx

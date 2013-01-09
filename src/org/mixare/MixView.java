@@ -150,7 +150,6 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			}
 
 			maintainCamera();
-			maintainZoomBar();
 
 			if (!isInited) {
 				// getMixViewData().setMixContext(new MixContext(this));
@@ -158,10 +157,12 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 				// DownloadManager(mixViewData.getMixContext()));
 
 				setDataView(new DataView(getMixViewData().getMixContext()));
-
+				//setdWindow(new PaintScreen());
+				
 				maintainAugmentR();
+				maintainZoomBar();
 
-				setdWindow(new PaintScreen());
+				
 				/* set the radius in data view to the last selected by the user */
 				setZoomLevel();
 				refreshDownload();
@@ -330,6 +331,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Log.i(TAG, "onResume");
 		isBackground = false;
 		try {
 			this.getMixViewData().getmWakeLock().acquire();
@@ -513,6 +515,8 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	 */
 	protected void onRestart() {
 		super.onRestart();
+		Log.i(TAG, "onRestart");
+	
 		maintainCamera();
 		maintainAugmentR();
 		maintainZoomBar();
@@ -558,10 +562,10 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	public void repaint() {
 		// clear stored data
 		getDataView().clearEvents();
-		setDataView(null); // It's smelly code, but enforce garbage collector
-							// to release data.
-		setDataView(new DataView(getMixViewData().getMixContext()));
-		setdWindow(new PaintScreen());
+//		setDataView(null); // It's smelly code, but enforce garbage collector
+//							// to release data.
+//		setDataView(new DataView(getMixViewData().getMixContext()));
+//		setdWindow(new PaintScreen());
 
 	}
 
@@ -592,9 +596,10 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	 */
 	private void maintainZoomBar() {
 		SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
-		if (zoombarLayout == null) {
-			zoombarLayout = createZoomBar(settings);
-		}
+		FrameLayout frameLayout = createZoomBar(settings);
+		addContentView(frameLayout, new FrameLayout.LayoutParams(
+				LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT,
+				Gravity.BOTTOM));
 
 	}
 
@@ -881,10 +886,11 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			break;
 		/* zoom level */
 		case 5:
-			addContentView(zoombarLayout, new FrameLayout.LayoutParams(
-					LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
-					Gravity.BOTTOM));
+//			addContentView(zoombarLayout, new FrameLayout.LayoutParams(
+//					LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
+//					Gravity.BOTTOM));
 			getMixViewData().getMyZoomBar().setVisibility(View.VISIBLE);
+			getMixViewData().getMyZoomBar().requestLayout();
 			getMixViewData().setZoomProgress(
 					getMixViewData().getMyZoomBar().getProgress());
 			break;

@@ -49,7 +49,7 @@ public class Surface3D extends GLSurfaceView {
 				return new MatrixTrackingGL(gl);
 			}
 		});
-
+		
 		Display display = ((WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 		Point p = new Point();
