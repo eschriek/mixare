@@ -93,6 +93,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private Mesh arrow;
 	private float zNear;
 	private float zFar;
+	private boolean spawned = false; 
 
 	public PaintScreen(Context cont, DataViewInterface dat) {
 		this();
@@ -127,7 +128,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		zFar = 100f;
 
 		GLParameters.ENABLE3D = true;
-		GLParameters.DEBUG = false;
+		GLParameters.DEBUG = true;
 		GLParameters.BLENDING = true;
 
 		// 4444 Because we need the alpha, 8888 would improve quality at the
@@ -180,9 +181,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 *            calculate aspect ratio used by gluPerspective
 	 */
 	public void ready3D(GL10 gl, int width, int height) {
-		if (GLParameters.DEBUG)
-			Log.i(TAG, "Ready3D " + width + " " + height);
-
 		gl.glViewport(0, 0, width, height);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
 
@@ -212,8 +210,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 *            Height of the matrix, usually screen height
 	 */
 	public void ready2D(GL10 gl, int width, int height) {
-		if (GLParameters.DEBUG)
-			Log.i(TAG, "Ready2D " + width + " " + height);
 		gl.glMatrixMode(GL10.GL_PROJECTION);
 		gl.glLoadIdentity();
 
@@ -252,6 +248,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			if (!data.isInited()) {
 				data.init(mWidth, mHeight);
 			}
+			
+			
 
 			if (app.isZoombarVisible()) {
 				zoomPaint.setColor(Color.WHITE);
@@ -276,10 +274,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 						(mHeight - height));
 				text.end();
 			}
+			
+			if(!spawned) {
+				app.spawnThread();
+			}
 
-			data.draw(this);
-
-			if (GLParameters.ENABLEBB) {
+			if (GLParameters.DEBUG) {
 				textInfo.begin();
 				textInfo.draw(info + " FPS : " + (1000 / dt) + " size : "
 						+ size + " kb", (mWidth - (getTextWidth(info) + 210)),
@@ -287,6 +287,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				textInfo.end();
 			}
 
+			//data.draw(this);
 			// if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
 			// throw new Object3DException("Matrix stack overflow, Depth > : "
 			// + GLParameters.MAX_STACK_DEPTH);
@@ -339,17 +340,10 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					s.setTextures(Util.loadGLTexture(gl, s.getImg(), "Bitmap"));
 				}
 
-				// if(s.getRotation() != 0) {
-				// System.out.println(s.getRotation() + " " +
-				// s.getIdentifier());
-				// gl.glRotatef(s.getRotation(), 0f, 0f, 1f);
-				// }
-
 				gl.glColor4f(1f, 1f, 1f, 0.6f); // Transparant images
 				s.draw(gl);
 
 			}
-
 		}
 	}
 
@@ -463,7 +457,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				}
 
 				gl.glTranslatef(points[0], points[1], points[2]);
-				//gl.glTranslatef(-15, 2, 0);
+				// gl.glTranslatef(-15, 2, 0);
 				// Scale
 				// Scale with more then 50 causes huge objects
 				if (model.getSchaal() > 50) {
@@ -554,6 +548,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 */
 	public void paintBitmapGL(String id, Bitmap img, float x, float y,
 			float rotation) {
+
 		boolean create = images.isEmpty();
 
 		Square tmp = new Square(id, img, paint, x, (mHeight - y),
@@ -576,6 +571,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		if (create) {
 			images.add(tmp);
 		}
+
 	}
 
 	/**
@@ -727,6 +723,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		// context but hacking GLSurfaceView will cause bugs on different
 		// devices
 		text3d.clear();
+		models.clear();
 		images.clear();
 
 		mWidth = width;

@@ -90,7 +90,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	private CameraSurface camScreen;
 	private AugmentedView augScreen;
 	private Surface3D augScreen3D;
-	private FrameLayout zoombarLayout;
+	private long startTime;
 
 	private boolean isInited;
 	private static boolean isBackground;
@@ -131,6 +131,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// MixView.CONTEXT = this;
+		Log.i(TAG, "onCreate");
 		try {
 			isBackground = false;
 			handleIntent(getIntent());
@@ -157,18 +158,18 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 				// DownloadManager(mixViewData.getMixContext()));
 
 				setDataView(new DataView(getMixViewData().getMixContext()));
-				//setdWindow(new PaintScreen());
-				
+				// setdWindow(new PaintScreen());
+
 				maintainAugmentR();
 				maintainZoomBar();
 
-				
 				/* set the radius in data view to the last selected by the user */
 				setZoomLevel();
 				refreshDownload();
 				isInited = true;
 			}
 
+			// getDataView().draw(dWindow);
 			/*
 			 * Get the preference file PREFS_NAME stored in the internal memory
 			 * of the phone
@@ -475,6 +476,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			// This is a place holder to API returned listed of sensors, we
 			// registered
 			// what we need, the rest is unnecessary.
+
 			getMixViewData().clearAllSensors();
 		}
 
@@ -516,7 +518,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	protected void onRestart() {
 		super.onRestart();
 		Log.i(TAG, "onRestart");
-	
+
 		maintainCamera();
 		maintainAugmentR();
 		maintainZoomBar();
@@ -562,10 +564,10 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 	public void repaint() {
 		// clear stored data
 		getDataView().clearEvents();
-//		setDataView(null); // It's smelly code, but enforce garbage collector
-//							// to release data.
-//		setDataView(new DataView(getMixViewData().getMixContext()));
-//		setdWindow(new PaintScreen());
+		// setDataView(null); // It's smelly code, but enforce garbage collector
+		// // to release data.
+		// setDataView(new DataView(getMixViewData().getMixContext()));
+		// setdWindow(new PaintScreen());
 
 	}
 
@@ -886,9 +888,9 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			break;
 		/* zoom level */
 		case 5:
-//			addContentView(zoombarLayout, new FrameLayout.LayoutParams(
-//					LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
-//					Gravity.BOTTOM));
+			// addContentView(zoombarLayout, new FrameLayout.LayoutParams(
+			// LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
+			// Gravity.BOTTOM));
 			getMixViewData().getMyZoomBar().setVisibility(View.VISIBLE);
 			getMixViewData().getMyZoomBar().requestLayout();
 			getMixViewData().setZoomProgress(
@@ -1073,6 +1075,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 
 			getMixViewData().getMixContext().updateSmoothRotation(
 					getMixViewData().getSmoothR());
+
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
@@ -1239,6 +1242,35 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 		// Thread(mixViewData.getMixContext().getDownloadManager()));
 		// mixViewData.getDownloadThread().start();
 
+	}
+
+	@Override
+	public void spawnThread() {
+		Thread t = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				if (startTime == 0) {
+					startTime = System.currentTimeMillis();
+				}
+
+				long endTime = System.currentTimeMillis();
+				long dt = endTime - startTime;
+				//limit amount of cycles per second
+//				if (dt < 33) {
+//					try {
+//						Thread.sleep(33 - dt);
+//					} catch (InterruptedException e) {
+//						e.printStackTrace();
+//					}
+//				}
+				startTime = System.currentTimeMillis();
+
+				getDataView().draw(getdWindow());
+
+			}
+		});
+		t.run();
 	}
 
 }

@@ -13,5 +13,6 @@ public interface MixViewInterface {
 	boolean isZoombarVisible();
 	int getZoomProgress();
 	String getZoomLevel();
+	void spawnThread();
 	
 }

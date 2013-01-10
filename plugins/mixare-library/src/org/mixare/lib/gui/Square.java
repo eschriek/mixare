@@ -67,7 +67,7 @@ public class Square {
 
 		this.color = Util.paintColorByteToFloat(paint);
 		this.rotation = 0;
-		
+
 		if (paint.getStyle() == Paint.Style.FILL) {
 			this.filled = true;
 		} else {
@@ -113,7 +113,7 @@ public class Square {
 		mIndexBuffer.put(indices);
 		mIndexBuffer.position(0);
 	}
-
+	
 	public Bitmap getImg() {
 		return img;
 	}
@@ -230,6 +230,7 @@ public class Square {
 		if (GLParameters.DRAWTEX) {
 			crop = new int[] { 0, (int) height, (int) width, (int) -height };
 
+			//SIGSEGV HERE
 			((GL11) gl).glTexParameteriv(GL10.GL_TEXTURE_2D,
 					GL11Ext.GL_TEXTURE_CROP_RECT_OES, crop, 0);
 
@@ -251,8 +252,8 @@ public class Square {
 			if (textures[0] == 0) {
 				gl.glColor4f(color[0], color[1], color[2], color[3]);
 			}
-			
-			if(rotation != 0) {
+
+			if (rotation != 0) {
 				gl.glRotatef(rotation, 1f, 0, 0f);
 			}
 
@@ -271,5 +272,6 @@ public class Square {
 			gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
 			gl.glDisableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
 		}
+
 	}
 }

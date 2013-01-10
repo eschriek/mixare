@@ -21,6 +21,7 @@ package org.mixare.marker;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import org.mixare.MixView;
 import org.mixare.lib.MixUtils;
 import org.mixare.lib.gui.PaintScreen;
 import org.mixare.lib.marker.draw.DrawImage;

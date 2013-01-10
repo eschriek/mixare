@@ -18,6 +18,7 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
@@ -32,6 +33,7 @@ public class Surface3D extends GLSurfaceView {
 	private PaintScreen screen;
 	private Context context;
 	private MixStateInterface state;
+	private DataViewInterface data;
 	private MixContextInterface mxContext;
 
 	@TargetApi(13)
@@ -42,6 +44,7 @@ public class Surface3D extends GLSurfaceView {
 		this.mxContext = mxContext;
 		this.context = context;
 		this.state = state;
+		this.data = data;
 		this.setGLWrapper(new GLWrapper() {
 
 			@Override
@@ -49,7 +52,7 @@ public class Surface3D extends GLSurfaceView {
 				return new MatrixTrackingGL(gl);
 			}
 		});
-		
+
 		Display display = ((WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 		Point p = new Point();
@@ -61,13 +64,15 @@ public class Surface3D extends GLSurfaceView {
 		screen = new PaintScreen(context, data);
 		MixView.setdWindow(screen);
 
-		//setDebugFlags(DEBUG_LOG_GL_CALLS); 
-		setEGLConfigChooser(8, 8, 8, 8, 16, 0); //ARGB 8888 ,D 16
+		// setDebugFlags(DEBUG_LOG_GL_CALLS);
+		setEGLConfigChooser(8, 8, 8, 8, 16, 0); // ARGB 8888 ,D 16
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
 		setRenderer(MixView.getdWindow());
+		
+		//spawnThread();
 	}
-	
+
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
 		float x = e.getX();

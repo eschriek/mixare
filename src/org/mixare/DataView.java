@@ -370,8 +370,6 @@ public class DataView implements DataViewInterface {
 				+ RadarPoints.RADIUS);
 		dw.setColor(Color.rgb(255, 255, 255));
 		dw.setFontSize(12);
-
-		//System.out.println(MixUtils.formatDist(radius * 1000) + " " + radius);
 		
 		radarText(dw, MixUtils.formatDist(radius * 1000), rx
 				+ RadarPoints.RADIUS, ry + RadarPoints.RADIUS * 2 - 10, false);
