@@ -11,6 +11,7 @@ import org.mixare.lib.gui.PaintScreen;
  */
 public interface DataViewInterface {
 	void draw(PaintScreen p);
+	void drawRadar(PaintScreen dw);
 	void init(int width, int height);
 	boolean isInited();
 }

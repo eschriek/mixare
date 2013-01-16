@@ -25,6 +25,7 @@ import android.opengl.GLSurfaceView;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.WindowManager;
 
 @SuppressLint("NewApi")
@@ -115,6 +116,14 @@ public class Surface3D extends GLSurfaceView {
 			}
 		}
 		return true;
+	}
+
+	
+	@Override
+	public void surfaceDestroyed(SurfaceHolder holder) {
+		// TODO Auto-generated method stub
+		super.surfaceDestroyed(holder);
+		screen.stopThread();
 	}
 
 	@Override

@@ -18,7 +18,9 @@
  */
 package org.mixare.lib.gui;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -47,12 +49,12 @@ import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
+import android.os.Environment;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.Log;
@@ -93,7 +95,11 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private Mesh arrow;
 	private float zNear;
 	private float zFar;
-	private boolean spawned = false; 
+	private boolean spawned = false;
+	private boolean drawQueueChanged;
+	private Object drawLock;
+	private final int FPS = 60;
+	private final long FPS_LIMIT = (1000 / FPS);
 
 	public PaintScreen(Context cont, DataViewInterface dat) {
 		this();
@@ -133,8 +139,12 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		// 4444 Because we need the alpha, 8888 would improve quality at the
 		// cost of speed
+
 		canvasMap = Bitmap.createBitmap(110, 110, Config.ARGB_4444);
 		window = new Square(paint, 0f, 0f, 110, 110);
+
+		drawLock = new Object();
+		drawQueueChanged = false;
 
 		text3d = new HashSet<TextBox>();
 		images = new HashSet<Square>();
@@ -248,8 +258,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			if (!data.isInited()) {
 				data.init(mWidth, mHeight);
 			}
-			
-			
 
 			if (app.isZoombarVisible()) {
 				zoomPaint.setColor(Color.WHITE);
@@ -274,10 +282,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 						(mHeight - height));
 				text.end();
 			}
-			
-			if(!spawned) {
-				app.spawnThread();
-			}
 
 			if (GLParameters.DEBUG) {
 				textInfo.begin();
@@ -287,7 +291,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				textInfo.end();
 			}
 
-			//data.draw(this);
+			// Android's Canvas cannot handle multi threading, so let the GLThread handle it
+			data.drawRadar(this);
+
 			// if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
 			// throw new Object3DException("Matrix stack overflow, Depth > : "
 			// + GLParameters.MAX_STACK_DEPTH);
@@ -333,8 +339,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				}
 			}
 
-			window.draw(gl, Util.loadGLTexture(gl, canvasMap, "Radar"));
-
 			for (Square s : images) {
 				if (s.getTextures()[0] == 0 && s.getImg() != null) {
 					s.setTextures(Util.loadGLTexture(gl, s.getImg(), "Bitmap"));
@@ -344,6 +348,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				s.draw(gl);
 
 			}
+
+			window.draw(gl, Util.loadGLTexture(gl, canvasMap, "Radar"));
+
 		}
 	}
 
@@ -686,28 +693,94 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		// to disable this if the blocks are gone
 	}
 
+	public synchronized void doSwap(DataViewInterface data) {
+		try {
+			data.draw(this);
+		} catch (Exception e) {
+			Log.i(TAG, "Data is null");
+		}
+
+		synchronized (drawLock) {
+			drawQueueChanged = true;
+			drawLock.notify();
+		}
+
+	}
+
+	/**
+	 * This method is supposed to block while drawing is active
+	 */
+	public synchronized void waitForDrawing() {
+
+	}
+
+	public void stopThread() {
+		app.killThread();
+	}
+
 	@SuppressLint("NewApi")
 	public void onDrawFrame(GL10 gl) {
-		long time1 = System.currentTimeMillis();
-		gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 
-		clearBuffers();
-		try {
+		if (!spawned) {
+			app.spawnThread();
+			spawned = true;
+		}
 
-			ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
-			draw2D(gl);
-
-			gl.glPushMatrix();
-
-			if (GLParameters.ENABLE3D) {
-				ready3D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
-				draw3D(gl);
+		synchronized (drawLock) {
+			if (!drawQueueChanged) {
+				while (!drawQueueChanged) {
+					try {
+						drawLock.wait();
+					} catch (InterruptedException e) {
+						// Not important
+					}
+				}
 			}
+			drawQueueChanged = false;
+		}
 
-			gl.glPopMatrix();
-			dt = System.currentTimeMillis() - time1;
-		} catch (Object3DException e) {
+		synchronized (this) {
 
+			gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+			clearBuffers();
+
+			try {
+				long time1 = System.currentTimeMillis();
+
+				ready2D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
+				draw2D(gl);
+
+				gl.glPushMatrix();
+
+				if (GLParameters.ENABLE3D) {
+					ready3D(gl, GLParameters.WIDTH, GLParameters.HEIGHT);
+					draw3D(gl);
+				}
+
+				gl.glPopMatrix();
+
+				long time2 = System.currentTimeMillis() - time1;
+
+				if (time2 < FPS_LIMIT) {
+					try {
+						Thread.sleep((FPS_LIMIT - time2)); // 2 ms error
+					} catch (InterruptedException e) {
+						//
+					}
+				}
+
+				dt = System.currentTimeMillis() - time1;
+
+				if (dt != 0 && GLParameters.DEBUG) {
+					Log.i(TAG, (dt > 16) ? "drawing overhead : " + (dt - 16)
+							: "drawing sleep : " + (16 - dt));
+				}
+
+				drawQueueChanged = true;
+
+			} catch (Object3DException e) {
+
+			}
 		}
 	}
 
@@ -717,6 +790,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
 		Log.i("Mixare", "onSurfaceChanged SOMETHING HAPPEND!!!");
 		Log.i(TAG, "" + Thread.currentThread().getId());
+		spawned = false;
 		clearBuffers();
 
 		// Hack for losing EGL context. It would be nicer to preserve the EGL

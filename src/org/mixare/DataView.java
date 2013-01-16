@@ -259,9 +259,6 @@ public class DataView implements DataViewInterface {
 				m.draw(dw);
 			}
 		}
-		
-		// Draw Radar
-		drawRadar(dw);
 
 		// Get next event
 		UIEvent evt = null;
@@ -339,7 +336,7 @@ public class DataView implements DataViewInterface {
 	 * @param PaintScreen
 	 *            screen that radar will be drawn to
 	 */
-	private void drawRadar(PaintScreen dw) {
+	public void drawRadar(PaintScreen dw) {
 		String dirTxt = "";
 		int bearing = (int) state.getCurBearing();
 		int range = (int) (state.getCurBearing() / (360f / 16f));

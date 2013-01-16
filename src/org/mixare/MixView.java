@@ -89,6 +89,9 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 
 	private CameraSurface camScreen;
 	private AugmentedView augScreen;
+	private boolean running = false;
+	private final int FPS = 60;
+	private final long FPS_LIMIT = (1000 / FPS);
 	private Surface3D augScreen3D;
 	private long startTime;
 
@@ -1246,31 +1249,49 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 
 	@Override
 	public void spawnThread() {
+		running = true;
 		Thread t = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				if (startTime == 0) {
+				while (running) {
 					startTime = System.currentTimeMillis();
+					
+//					long dt1 = System.currentTimeMillis();
+//					getdWindow().waitForDrawing();
+//					long dt2 = System.currentTimeMillis() - dt1;
+//					Log.i(TAG, "" + dt2);
+					
+					getdWindow().doSwap(getDataView());
+
+					long dt = System.currentTimeMillis() - startTime;
+					
+					if (dt < FPS_LIMIT) {
+						if (GLParameters.DEBUG)
+							Log.i(TAG, "Sleep : " + (FPS_LIMIT - dt));
+						try {
+							Thread.sleep(FPS_LIMIT - dt);
+						} catch (InterruptedException e) {
+							// Not important
+						}
+					} else if (dt > FPS_LIMIT) {
+						if (GLParameters.DEBUG)
+							Log.i(TAG, (dt - FPS_LIMIT) + " ms overhead");
+					}
+
 				}
-
-				long endTime = System.currentTimeMillis();
-				long dt = endTime - startTime;
-				//limit amount of cycles per second
-//				if (dt < 33) {
-//					try {
-//						Thread.sleep(33 - dt);
-//					} catch (InterruptedException e) {
-//						e.printStackTrace();
-//					}
-//				}
-				startTime = System.currentTimeMillis();
-
-				getDataView().draw(getdWindow());
-
 			}
 		});
-		t.run();
+
+		t.setName("DataView Thread");
+		t.start();
+	}
+
+	@Override
+	public void killThread() {
+		Log.i(TAG, "Stopping thread..");
+		running = false;
+		
 	}
 
 }

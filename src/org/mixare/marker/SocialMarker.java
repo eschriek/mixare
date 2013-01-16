@@ -34,7 +34,7 @@ import android.location.Location;
  */
 public class SocialMarker extends LocalMarker {
 	
-	public static final int MAX_OBJECTS=15;
+	public static final int MAX_OBJECTS=10;
 
 	public SocialMarker(String id, String title, double latitude, double longitude,
 			double altitude, String URL, int type, int color) {

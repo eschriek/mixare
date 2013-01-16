@@ -14,5 +14,6 @@ public interface MixViewInterface {
 	int getZoomProgress();
 	String getZoomLevel();
 	void spawnThread();
+	void killThread();
 	
 }

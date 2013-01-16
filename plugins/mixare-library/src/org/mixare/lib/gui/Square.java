@@ -235,6 +235,7 @@ public class Square {
 					GL11Ext.GL_TEXTURE_CROP_RECT_OES, crop, 0);
 
 			((GL11Ext) gl).glDrawTexfOES(x, y, 0, width, height);
+			
 		} else {
 
 			gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);

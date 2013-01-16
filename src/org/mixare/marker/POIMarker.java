@@ -37,7 +37,7 @@ import android.location.Location;
  */
 public class POIMarker extends LocalMarker {
 
-	public static final int MAX_OBJECTS = 20;
+	public static final int MAX_OBJECTS = 15;
 	public static final int OSM_URL_MAX_OBJECTS = 5;
 	private boolean isDirectionMarker = false;
 

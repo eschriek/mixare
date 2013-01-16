@@ -64,13 +64,13 @@ public class Util {
 	 * @param bitmap
 	 *            The bitmap that should be converted
 	 * @return The resulting texture
-	 * @throws Object3DException Throwed if something essential went wrong.
-	 
+	 * @throws Object3DException
+	 *             Throwed if something essential went wrong.
 	 */
 	public static int[] loadGLTexture(GL10 gl, Bitmap bitmap, String src)
 			throws Object3DException {
 
-		//Log.w("Mixare", "Load Texture called! From : " + src);
+		// Log.w("Mixare", "Load Texture called! From : " + src);
 
 		int[] textures = new int[1];
 		gl.glDeleteTextures(1, textures, 0);

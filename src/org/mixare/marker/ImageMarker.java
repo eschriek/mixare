@@ -46,7 +46,7 @@ import android.util.Log;
 public class ImageMarker extends LocalMarker {
 
 	/** Int MaxObjects that can be create of this marker */
-	public static final int maxObjects = 30;
+	public static final int maxObjects = 20;
 	/** BitMap Image storage */
 	private Bitmap image;
 
