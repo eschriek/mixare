@@ -1,19 +1,14 @@
-Broken / important:
-
-- Adding markerss blocks opengl thread and after that there might be some "ghost" markers
-
 To be improved:
 
 - Create a decent layout for text on screen (includes improving bounding boxes for touch events)
 - rewrite everything which takes care of calculations and drawing, dataview.draw is a big bottleneck (allocates a lot and is heavy on cpu). Should be able to gain a lot of speed.
-- Better error handling.
+- Adding a lot of markers might cause rendering to hang for a short amount of time, something to be fixed with point 2.
 - The webview doesnt work for panoramio and OSM (sometimes). Not caused by 3d tho ;-)
-- !! EGL context is lost onPause (setPreserveEGLContext doesnt do his job), fixed by clearing drawing buffers. 
 
 Anything else:
 
 - When resuming Mixare the Surface3D does not appear on my One X, while it does on my TF101..
-- Firmware bug on my TF101 caused by glTexParameteriv. Does not happen on my One . See following trace:
+- Firmware bug on my TF101 caused by glTexParameteriv. Does not happen on my One X. See following trace:
 
 I/DEBUG   (  112): *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
 I/DEBUG   (  112): Build fingerprint: 'asus/US_epad/EeePad:4.0.3/IML74K/US_epad-9.2.1.11-20120221:user/release-keys'
