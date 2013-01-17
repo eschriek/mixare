@@ -23,9 +23,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -61,8 +63,7 @@ import android.util.Log;
 
 /**
  * Duplicate of the original Paintscreen which used a canvas. It still uses the
- * canvas for certain parts of the screen like the radar because rewriting it
- * for openGL won't increase the speed much.
+ * canvas for certain parts of the screen like the radar.
  * 
  * 
  * @author Edwin Schriek Nov 14, 2012 mixare-library
@@ -77,8 +78,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	private Paint paint = new Paint();
 	private Square window;
 	private long dt;
-	private long startTime;
-	private long endTime;
 	private String info;
 	private double size;
 	private float rotation;
@@ -128,8 +127,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		zoomPaint = new Paint();
 		info = "";
 		size = 0;
-
-		startTime = System.currentTimeMillis();
 		zNear = 0.1f;
 		zFar = 100f;
 
@@ -139,7 +136,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 		// 4444 Because we need the alpha, 8888 would improve quality at the
 		// cost of speed
-
 		canvasMap = Bitmap.createBitmap(110, 110, Config.ARGB_4444);
 		window = new Square(paint, 0f, 0f, 110, 110);
 
@@ -244,7 +240,6 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * @throws Object3DException
 	 *             Throwed if anything essential went wrong.
 	 */
-	@SuppressLint("NewApi")
 	public void draw2D(GL10 gl) throws Object3DException {
 		if (window != null && canvasMap != null) {
 			size = (canvasMap.getHeight() * canvasMap.getRowBytes()) / 1024;
@@ -283,15 +278,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 				text.end();
 			}
 
-			if (GLParameters.DEBUG) {
-				textInfo.begin();
-				textInfo.draw(info + " FPS : " + (1000 / dt) + " size : "
-						+ size + " kb", (mWidth - (getTextWidth(info) + 210)),
-						mHeight - (mHeight - 100));
-				textInfo.end();
-			}
+			textInfo.begin();
+			textInfo.draw(info + " FPS : " + (1000 / dt) + " size : " + size
+					+ " kb", (mWidth - (getTextWidth(info) + 210)), mHeight
+					- (mHeight - 100));
+			textInfo.end();
 
-			// Android's Canvas cannot handle multi threading, so let the GLThread handle it
+			// Android's Canvas cannot handle multi threading, so we cannot draw
+			// it via the DataView's thread.
 			data.drawRadar(this);
 
 			// if (text3d.size() >= GLParameters.MAX_STACK_DEPTH - 2) { //
@@ -438,7 +432,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 *            GL object supplied by onDrawFrame
 	 */
 	public void draw3D(GL10 gl) {
-		// rotation += 2.50; Eye candy
+		rotation += 2.50; //Eye candy
 
 		synchronized (models) {
 			for (Model3D model : models.values()) {
@@ -446,7 +440,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 				// Following lines calculate screen coordinates into projection
 				// space. Also calculates the distance to the object using
-				// distanceToDepth
+				// distanceToDepth.
 
 				gl.glPushMatrix();
 
@@ -490,21 +484,22 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					gl.glRotatef(model.getRot_z(), 0f, 0f, 1f);
 				}
 
-				// Tekenen
+				// Color
 				if (model.getColor() != 0) {
 					float[] rgb = Util.hexToRGB(model.getColor());
 					gl.glColor4f(rgb[0], rgb[1], rgb[2], 0.4f);
 				}
 
-				// Blenderen
+				// Blending
 				if (model.isBlended() == 0) {
 					gl.glEnable(GL10.GL_BLEND);
 					gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
 				}
 
 				model.getModel().draw(gl);
+
 				gl.glPopMatrix();
-				gl.glColor4f(1f, 1f, 1f, 1f); // Kleur resetten
+				gl.glColor4f(1f, 1f, 1f, 1f); // Reset color
 
 			}
 		}
@@ -517,27 +512,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * @param box
 	 */
 	public void drawBB(String id, TextBox box) {
-		boolean create = images.isEmpty();
-
-		Square tmp = new Square(paint, (box.getLoc().x - box.getBlockW() / 2),
-				mHeight - (box.getLoc().y + box.getBlockH() / 2),
-				box.getBlockW(), box.getBlockH());
-		tmp.setIdentifier(id);
-
-		for (Square s : images) {
-			if (s.equals(tmp)) {
-				s.update(tmp); // Updating will stop bitmaps from flickering and
-								// increases performance
-				create = false;
-				break;
-			} else {
-				create = true;
-			}
-		}
-
-		if (create) {
-			images.add(tmp);
-		}
+		images.add(new Square(paint, (box.getLoc().x - box.getBlockW() / 2),
+				mHeight - (box.getLoc().y + box.getBlockH() / 2), box
+						.getBlockW(), box.getBlockH()));
 	}
 
 	/**
@@ -555,30 +532,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 */
 	public void paintBitmapGL(String id, Bitmap img, float x, float y,
 			float rotation) {
-
-		boolean create = images.isEmpty();
-
-		Square tmp = new Square(id, img, paint, x, (mHeight - y),
-				img.getWidth(), img.getHeight());
-
-		if (rotation != 0) {
-			tmp.setRotation(rotation);
-		}
-
-		for (Square s : images) {
-			if (s.equals(tmp)) {
-				s.update(tmp); // Updating will stop bitmaps from flickering and
-								// increases performance
-				create = false;
-				break;
-			} else {
-				create = true;
-			}
-		}
-		if (create) {
-			images.add(tmp);
-		}
-
+		images.add(new Square(id, img, paint, x, (mHeight - y), img.getWidth(),
+				img.getHeight()));
 	}
 
 	/**
@@ -622,78 +577,56 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 *             Something went wrong with loading the model, see stracktrace
 	 */
 	public void paint3DModel(Model3D model) throws ModelLoadException {
-		Iterator<Entry<String, Model3D>> it = models.entrySet().iterator();
-
-		boolean create = models.isEmpty();
-
-		// To keep GC happy, load model once in memory.
-		while (it.hasNext()) {
-			Entry<String, Model3D> entry = it.next();
-
-			if (model.getObj().equalsIgnoreCase(entry.getKey())) {
-				create = false;
-				// This should never be true, but who knows
-				if (model.equals(entry.getValue())) {
-					break;
-				} else {
-					entry.getValue().update(model);
-					break;
-				}
+		Mesh tmp = null;
+		try {
+			if (model.getObj().endsWith("poi")) {
+				tmp = poi;
+			} else if (model.getObj().endsWith("triangle")) {
+				tmp = triangle;
+			} else if (model.getObj().endsWith("path")) {
+				tmp = arrow;
 			} else {
-				create = true;
-			}
-		}
-
-		if (create) {
-			Mesh tmp = null;
-			try {
-				if (model.getObj().endsWith("poi")) {
-					tmp = poi;
-				} else if (model.getObj().endsWith("triangle")) {
-					tmp = triangle;
-				} else if (model.getObj().endsWith("path")) {
-					tmp = arrow;
-				} else {
-					InputStream input = new FileInputStream(model.getObj());
-					if (input != null) {
-						if (model.getObj().endsWith(".txt")) { // TODO: fix file
-																// store
-																// (betelgeuse)
-							tmp = new OffReader((Context) app).readMesh(input);
-						}
-						if (model.getObj().endsWith(".off")) {
-							tmp = new OffReader((Context) app).readMesh(input);
-						}
-						if (model.getObj().endsWith(".obj")) {
-							tmp = new ObjReader((Context) app).readMesh(input);
-						}
+				InputStream input = new FileInputStream(model.getObj());
+				if (input != null) {
+					if (model.getObj().endsWith(".txt")) { // TODO: fix file
+															// store
+															// (betelgeuse)
+						tmp = new OffReader((Context) app).readMesh(input);
+					}
+					if (model.getObj().endsWith(".off")) {
+						tmp = new OffReader((Context) app).readMesh(input);
+					}
+					if (model.getObj().endsWith(".obj")) {
+						tmp = new ObjReader((Context) app).readMesh(input);
 					}
 				}
-				if (tmp != null) {
-					model.setModel(tmp);
-				}
-			} catch (IOException ioe) {
-				ModelLoadException mle = new ModelLoadException(ioe);
-				mle.setPath(model.getObj());
-				throw mle;
-			} catch (ModelLoadException mle) {
-				mle.setPath(model.getObj());
-				throw mle;
 			}
-
-			models.put(model.getObj(), model);
+			if (tmp != null) {
+				model.setModel(tmp);
+			}
+		} catch (IOException ioe) {
+			ModelLoadException mle = new ModelLoadException(ioe);
+			mle.setPath(model.getObj());
+			throw mle;
+		} catch (ModelLoadException mle) {
+			mle.setPath(model.getObj());
+			throw mle;
 		}
+
+		models.put(model.getObj(), model);
 
 	}
 
 	private void clearBuffers() {
-		canvasMap.eraseColor(0);
-		// models.clear(); // Solves the ghost markers, it has no impact on
+		images.clear();
+		models.clear(); // Solves the ghost markers, it has no impact on
 		// performance because GC is blocking anyway. You want
 		// to disable this if the blocks are gone
 	}
 
 	public synchronized void doSwap(DataViewInterface data) {
+		clearBuffers();
+
 		try {
 			data.draw(this);
 		} catch (Exception e) {
@@ -708,17 +641,19 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	}
 
 	/**
-	 * This method is supposed to block while drawing is active
+	 * This method will block while drawing is active
 	 */
 	public synchronized void waitForDrawing() {
 
 	}
 
+	/**
+	 * This method will stop the DataView thread
+	 */
 	public void stopThread() {
 		app.killThread();
 	}
 
-	@SuppressLint("NewApi")
 	public void onDrawFrame(GL10 gl) {
 
 		if (!spawned) {
@@ -726,6 +661,14 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 			spawned = true;
 		}
 
+		/*
+		 * This lock is to prevent concurrent access to the buffers. If the
+		 * DataView thread does not swap buffers, the drawing will block until
+		 * it is swapped. Because of this, the DataView thread can still kill
+		 * the performance of the drawing, but it ensures no concurrent access.
+		 * TODO: Redraw previous frame if lock is active, to ensure drawing
+		 * occurs at maximum speed.
+		 */
 		synchronized (drawLock) {
 			if (!drawQueueChanged) {
 				while (!drawQueueChanged) {
@@ -742,7 +685,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 		synchronized (this) {
 
 			gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
-			clearBuffers();
+			canvasMap.eraseColor(0);
 
 			try {
 				long time1 = System.currentTimeMillis();
@@ -761,6 +704,8 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 
 				long time2 = System.currentTimeMillis() - time1;
 
+				// Limit FPS to give the application some time to breath (if it
+				// is going to fast ofcourse)
 				if (time2 < FPS_LIMIT) {
 					try {
 						Thread.sleep((FPS_LIMIT - time2)); // 2 ms error
@@ -775,11 +720,9 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 					Log.i(TAG, (dt > 16) ? "drawing overhead : " + (dt - 16)
 							: "drawing sleep : " + (16 - dt));
 				}
-
-				drawQueueChanged = true;
-
+				
 			} catch (Object3DException e) {
-
+				e.printStackTrace();
 			}
 		}
 	}
@@ -788,8 +731,7 @@ public class PaintScreen implements Parcelable, GLSurfaceView.Renderer {
 	 * Screen rotation, will not happen in Mixare
 	 */
 	public void onSurfaceChanged(GL10 gl, int width, int height) {
-		Log.i("Mixare", "onSurfaceChanged SOMETHING HAPPEND!!!");
-		Log.i(TAG, "" + Thread.currentThread().getId());
+		Log.i("Mixare", "onSurfaceChanged");
 		spawned = false;
 		clearBuffers();
 

@@ -1,6 +1,7 @@
 package org.mixare.lib.model3d.text;
 
 import android.graphics.PointF;
+import android.graphics.Rect;
 
 public class TextBox {
 
@@ -83,11 +84,13 @@ public class TextBox {
 	}
 
 	public boolean isTouchInside(float x, float y) {
-		if (x > loc.x && y > loc.y && x < (loc.x + blockW)
-				&& y < (loc.y + blockH)) {
-			return true;
-		}
-		return false;
+		return new Rect((int) loc.x, (int) loc.y, (int) loc.x + blockW,
+				(int) loc.y + blockH).contains((int) x, (int) y);
+		// if (x > loc.x && y > loc.y && x < (loc.x + blockW)
+		// && y < (loc.y + blockH)) {
+		// return true;
+		// }
+		// return false;
 	}
 
 }

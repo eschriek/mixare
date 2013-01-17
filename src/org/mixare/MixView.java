@@ -950,6 +950,7 @@ public class MixView extends SherlockActivity implements SensorEventListener,
 			break;
 		case 10:
 			GLParameters.ENABLEBB = !GLParameters.ENABLEBB;
+			GLParameters.DEBUG = !GLParameters.DEBUG;
 			break;
 		}
 		return true;
@@ -1312,7 +1313,6 @@ class CameraSurface extends SurfaceView implements SurfaceHolder.Callback {
 
 			holder = getHolder();
 			holder.addCallback(this);
-			holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		} catch (Exception ex) {
 
 		}

@@ -70,8 +70,8 @@ public class Surface3D extends GLSurfaceView {
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
 		setRenderer(MixView.getdWindow());
-		
-		//spawnThread();
+
+		// spawnThread();
 	}
 
 	@Override
@@ -118,7 +118,6 @@ public class Surface3D extends GLSurfaceView {
 		return true;
 	}
 
-	
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
