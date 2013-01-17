@@ -1,11 +1,11 @@
 Broken / important:
 
-- GLThread is executing code from dataview.draw even when spawning a new thread for that
 - Adding markerss blocks opengl thread and after that there might be some "ghost" markers
 
 To be improved:
 
 - Create a decent layout for text on screen (includes improving bounding boxes for touch events)
+- rewrite everything which takes care of calculations and drawing, dataview.draw is a big bottleneck (allocates a lot and is heavy on cpu). Should be able to gain a lot of speed.
 - Better error handling.
 - The webview doesnt work for panoramio and OSM (sometimes). Not caused by 3d tho ;-)
 - !! EGL context is lost onPause (setPreserveEGLContext doesnt do his job), fixed by clearing drawing buffers. 
