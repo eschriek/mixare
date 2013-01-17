@@ -22,6 +22,8 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.opengl.GLSurfaceView;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -36,7 +38,8 @@ public class Surface3D extends GLSurfaceView {
 	private MixStateInterface state;
 	private DataViewInterface data;
 	private MixContextInterface mxContext;
-
+	private Handler handler = new Handler(Looper.getMainLooper());
+	
 	@TargetApi(13)
 	public Surface3D(Context context, DataViewInterface data,
 			MixStateInterface state, MixContextInterface mxContext) {
@@ -70,50 +73,67 @@ public class Surface3D extends GLSurfaceView {
 		getHolder().setFormat(PixelFormat.TRANSLUCENT);
 
 		setRenderer(MixView.getdWindow());
-
-		// spawnThread();
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent e) {
-		float x = e.getX();
-		float y = e.getY();
+		final float x = e.getX();
+		final float y = e.getY();
 		switch (e.getAction()) {
 		case MotionEvent.ACTION_DOWN:
-			List<TextBox> results = new ArrayList<TextBox>();
-			for (TextBox t : screen.getBoundingBoxes()) {
-				if (t.isTouchInside(x, y)) {
-					results.add(t);
+			queueEvent(new Runnable() {
 
-				}
-			}
+				@Override
+				public void run() {
+					List<TextBox> results = new ArrayList<TextBox>();
+					for (TextBox t : screen.getBoundingBoxes()) {
+						if (t.isTouchInside(x, y)) {
+							results.add(t);
 
-			if (results.size() == 1) {
-				state.handleEvent(mxContext, results.get(0).getUrl());
-			} else if (results.size() > 1) {
-				List<String> strings = new ArrayList<String>();
-				List<String> links = new ArrayList<String>();
-				for (TextBox t : results) {
-					strings.add(t.getTekst());
-					links.add(t.getUrl());
-				}
-
-				final CharSequence[] items = strings.toArray(new String[strings
-						.size()]);
-				final CharSequence[] urls = links.toArray(new String[links
-						.size()]);
-
-				AlertDialog.Builder builder = new AlertDialog.Builder(context);
-				builder.setTitle("Make your selection");
-				builder.setItems(items, new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int item) {
-						state.handleEvent(mxContext, urls[item].toString());
-						dialog.dismiss();
+						}
 					}
-				});
-				AlertDialog alert = builder.create();
-				alert.show();
-			}
+
+					if (results.size() == 1) {
+						state.handleEvent(mxContext, results.get(0).getUrl());
+					} else if (results.size() > 1) {
+						List<String> strings = new ArrayList<String>();
+						List<String> links = new ArrayList<String>();
+						for (TextBox t : results) {
+							strings.add(t.getTekst());
+							links.add(t.getUrl());
+						}
+
+						final CharSequence[] items = strings
+								.toArray(new String[strings.size()]);
+						final CharSequence[] urls = links
+								.toArray(new String[links.size()]);
+
+						final AlertDialog.Builder builder = new AlertDialog.Builder(
+								context);
+						builder.setTitle("Make your selection");
+						builder.setItems(items,
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int item) {
+										state.handleEvent(mxContext,
+												urls[item].toString());
+										dialog.dismiss();
+									}
+								});
+			
+						handler.post(new Runnable() {
+							
+							@Override
+							public void run() {
+								AlertDialog alert = builder.create();
+								alert.show();		
+							}
+						});
+						
+					}
+				}
+			});
+
 		}
 		return true;
 	}
