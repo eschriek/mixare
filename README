@@ -3,7 +3,7 @@ To be improved:
 - Create a decent layout for text on screen (includes improving bounding boxes for touch events)
 - rewrite everything which takes care of calculations and drawing, dataview.draw is a big bottleneck (allocates a lot and is heavy on cpu). Should be able to gain a lot of speed.
 - Adding a lot of markers might cause rendering to hang for a short amount of time, something to be fixed with point 2.
-- The webview doesnt work for panoramio and OSM (sometimes). Not caused by 3d tho ;-)
+- The webview doesnt work for panoramio and OSM (sometimes). Not caused by 3d tho ;-).
 
 Anything else:
 
